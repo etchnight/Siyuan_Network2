@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Network2</title>
+    <script src="./Script/SiyuanConnect.js"></script>
+    <script src="./Script/main.js"></script>
+    <script src="./Script/vis-network.min.js"></script>
+    <script src="./Script/lodash.min.js"></script>
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+
+        label {
+            background-color: whitesmoke;
+        }
+    </style>
+</head>
+
+
+<body>
+    <from>
+        <label for="node-id">Id</label><br>
+        <input id="node-id" type="text" value="20220602091720-j7te3k9" /><br>
+        <label for="divideTag">关系属性标签分组</label><br>
+        <input id="divideTag" type="text" value="1" />
+    </from>
+    <div>
+        <button onclick="reDraw();" type="button">重新绘制</button>
+    </div>
+    <div id="mynetwork"></div>
+    <script type="text/javascript">
+        //var node = window.frameElement.parentElement.parentElement;
+        var id = document.getElementById("node-id").value;
+        //id = "20220602091720-j7te3k9"
+        main(id)
+        //test()
+    </script>
+</body>
+
+</html>

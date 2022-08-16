@@ -1,0 +1,173 @@
+"use strict";
+var visNodes;
+var visEdges;
+var network;
+function reDraw() {
+    var id = document.getElementById("node-id").value;
+    main(id)
+}
+async function main(id) {
+    var edgeOptions = {
+        arrows: {
+            to: true
+        }
+    };
+    var nodeOptions = {};
+    visNodes = new vis.DataSet(nodeOptions);
+    visEdges = new vis.DataSet(edgeOptions);
+    //查询数据
+    var source = await Siyuan_sql_FindbyID(id);
+    id = source.root_id
+    await findAndAdd(id)
+
+    //画图
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: visNodes,
+        edges: visEdges
+    };
+    var options = {
+        nodes: nodeOptions,
+        edges: edgeOptions
+    };
+    network = new vis.Network(container, data, options);
+    network.on("click", async function (params) {
+        var id = params.nodes[0];
+        await findAndAdd(id);
+    });
+    network.on("doubleClick", async function (params) {
+        var id = params.nodes[0];
+        window.open("siyuan://blocks/" + id);
+    })
+}
+
+//查询引用和反向引用并转化为visData
+async function findAndAdd(id) {
+    var source = await Siyuan_sql_FindbyID(id);
+    //反向引用
+    var backDefList = await Siyuan_sql_FindBackDefbyID(id);
+    if (backDefList.length > 0) {
+        var [nodes, edges] = await toVisData(backDefList, [source]);
+        //AddNodes(nodes);
+        //AddEdges(edges);
+        backDefList.forEach(async (element) => {
+            let id = element.id;//注意id变量的作用范围
+            let defList = await Siyuan_sql_FindDefbyID(id);
+            if (defList.length > 0) {
+                [nodes, edges] = await toVisData([element], defList);
+            }
+        });
+    }
+    //引用
+    var defList = await Siyuan_sql_FindDefbyID(id);
+    if (defList.length > 0) {
+        [nodes, edges] = await toVisData([source], defList);
+    }
+    //return [visNodes,visEdges]
+}
+
+//接收两个block列表,将它们转化为list1 to list2的形式
+//并添加到节点和边
+async function toVisData(list1 = [], list2 = []) {
+    var nodes = [];
+    var edges = [];
+    var listAll = _.concat(list1, list2)
+    //添加节点
+    for (let i = 0; i < listAll.length; i++) {
+        let block = listAll[i];
+        if (block.type == "d") {
+            nodes.push({
+                "id": block.id,
+                "label": block.content,
+                "group": block.type
+            })
+        } else {
+            let label;
+            if(block.name){
+                label=block.name;
+            }else{
+                let tag=await Siyuan_sql_FindTagContentbyID(block.id);
+                label=tag2label(tag);
+            }
+            nodes.push({
+                "id": block.id,
+                "title": block.content,
+                "label": label,
+                "group": block.type
+            })
+        };
+
+    }
+    //添加关系
+    for (let i = 0; i < list1.length; i++) {
+        let block1 = list1[i];
+        for (let j = 0; j < list2.length; j++) {
+            let block2 = list2[j];
+            edges.push({
+                "from": block1.id,
+                "to": block2.id
+            });
+        }
+    }
+    AddNodes(nodes)
+    AddEdges(edges)
+    return [nodes, edges]
+}
+
+//向DataSet中尝试添加新数据
+function AddNodes(newdata) {
+    if (!_.has(newdata, "length")) {
+        newdata = [newdata]
+    }
+    for (let i in newdata) {
+        let d = newdata[i];
+        try {
+            visNodes.add([d])
+        } catch (e) {
+            console.log(e.message)
+        }
+    }
+    //return data
+}
+function AddEdges(newdata) {
+    if (!_.has(newdata, "length")) {
+        newdata = [newdata]
+    }
+    for (let i in newdata) {
+        var flag = true
+        let d = newdata[i];
+        visEdges.forEach((a) => {
+            //防止重复
+            if (a.from == d.from && a.to == d.to) {
+                flag = false;
+            }
+        })
+        if (flag && d.from != d.to) {
+            //flag见上，并防止自引用
+            try {
+                visEdges.add([d])
+            } catch (e) {
+                console.log(e.message)
+            }
+        }
+    }
+}
+
+function tag2label(tag){
+    var label=[];
+    var flag=document.getElementById("divideTag").value;
+    tag.forEach(element => {
+        if(element.indexOf(flag)==0){
+            var tagArray=element.split("/");
+            label.push(tagArray[tagArray.length-1]);
+        }
+    });
+    var strLabel=label.join("/");
+    return strLabel
+}
+async function test(){
+    var id="20220602085234-u013n95";
+    var result=await Siyuan_sql_FindTagContentbyID(id);
+    console.log(result)
+    return result
+}
