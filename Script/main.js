@@ -43,7 +43,20 @@ async function main(id) {
 
 //查询引用和反向引用并转化为visData
 async function findAndAdd(id) {
+    if (!id) {
+        return
+    }
     var source = await Siyuan_sql_FindbyID(id);
+    //父级
+    var parent = await Siyuan_sql_FindbyID(source.parent);
+    if (parent) {
+        var [nodes, edges] = await toVisData([parent], [source]);
+    }
+    //子级
+    var children = await Siyuan_sql_FindbyParentID(id);
+    if (children.length > 0) {
+        var [nodes, edges] = await toVisData([source], children);
+    }
     //反向引用
     var backDefList = await Siyuan_sql_FindBackDefbyID(id);
     if (backDefList.length > 0) {
@@ -75,26 +88,29 @@ async function toVisData(list1 = [], list2 = []) {
     //添加节点
     for (let i = 0; i < listAll.length; i++) {
         let block = listAll[i];
-        if (block.type == "d") {
-            nodes.push({
-                "id": block.id,
-                "label": block.content,
-                "group": block.type
-            })
-        } else {
-            let label;
-            if(block.name){
-                label=block.name;
-            }else{
-                let tag=await Siyuan_sql_FindTagContentbyID(block.id);
-                label=tag2label(tag);
-            }
-            nodes.push({
-                "id": block.id,
-                "title": block.content,
-                "label": label,
-                "group": block.type
-            })
+        switch (block.type) {
+            case "d":
+            case "h":
+                nodes.push({
+                    "id": block.id,
+                    "label": block.content,
+                    "group": block.type
+                })
+                break;
+            default:
+                let label;
+                if (block.name) {
+                    label = block.name;
+                } else {
+                    let tag = await Siyuan_sql_FindTagContentbyID(block.id);
+                    label = tag2label(tag);
+                }
+                nodes.push({
+                    "id": block.id,
+                    "title": block.content,
+                    "label": label,
+                    "group": block.type
+                })
         };
 
     }
@@ -153,21 +169,21 @@ function AddEdges(newdata) {
     }
 }
 
-function tag2label(tag){
-    var label=[];
-    var flag=document.getElementById("divideTag").value;
+function tag2label(tag) {
+    var label = [];
+    var flag = document.getElementById("divideTag").value;
     tag.forEach(element => {
-        if(element.indexOf(flag)==0){
-            var tagArray=element.split("/");
-            label.push(tagArray[tagArray.length-1]);
+        if (element.indexOf(flag) == 0) {
+            var tagArray = element.split("/");
+            label.push(tagArray[tagArray.length - 1]);
         }
     });
-    var strLabel=label.join("/");
+    var strLabel = label.join("/");
     return strLabel
 }
-async function test(){
-    var id="20220602085234-u013n95";
-    var result=await Siyuan_sql_FindTagContentbyID(id);
+async function test() {
+    var id = "20220602085234-u013n95";
+    var result = await Siyuan_sql_FindTagContentbyID(id);
     console.log(result)
     return result
 }
