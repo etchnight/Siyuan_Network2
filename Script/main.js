@@ -47,15 +47,17 @@ async function findAndAdd(id) {
         return
     }
     var source = await Siyuan_sql_FindbyID(id);
-    //父级
-    var parent = await Siyuan_sql_FindbyID(source.parent);
-    if (parent) {
-        var [nodes, edges] = await toVisData([parent], [source]);
-    }
-    //子级
-    var children = await Siyuan_sql_FindbyParentID(id);
-    if (children.length > 0) {
-        var [nodes, edges] = await toVisData([source], children);
+    if (parAndChiFlag(source)) {
+        //父级
+        var parent = await Siyuan_sql_FindbyID(source.parent_id);
+        if (parent) {
+            var [nodes, edges] = await toVisData([parent], [source]);
+        }
+        //子级
+        var children = await Siyuan_sql_FindbyParentID(id);
+        if (children.length > 0) {
+            var [nodes, edges] = await toVisData([source], children);
+        }
     }
     //反向引用
     var backDefList = await Siyuan_sql_FindBackDefbyID(id);
@@ -181,9 +183,37 @@ function tag2label(tag) {
     var strLabel = label.join("/");
     return strLabel
 }
-async function test() {
-    var id = "20220602085234-u013n95";
-    var result = await Siyuan_sql_FindTagContentbyID(id);
-    console.log(result)
-    return result
+//父子节点是否仅限单个笔记本
+function parAndChiFlag(block) {
+    if (document.getElementById("notebooksCheck").value != "on") {
+        return false
+    }
+    var notebook = document.getElementById("notebooks").value;
+    if (block.box == notebook) {
+        return true
+    }else{
+        return false
+    }
+}
+//列出笔记本
+document.addEventListener('DOMContentLoaded', () => {
+    const notebooksElement = document.getElementById('notebooks')
+    notebooksElement.addEventListener('change', () => {
+        notebooksElement.setAttribute("data-id", notebooksElement.value)
+    })
+    getNotebooks(notebooksElement)
+})
+async function getNotebooks(notebooksElement) {
+    const notebooks = await Siyuan_lsNotebooks();
+    if (notebooks.length > 0) {
+        let optionsHTML = ''
+        notebooks.forEach(notebook => {
+            if (notebook.closed) {
+                return
+            }
+            optionsHTML += `<option value="${notebook.id}">${notebook.name}</option>`
+        })
+        notebooksElement.innerHTML = optionsHTML
+        notebooksElement.value = notebooksElement.getAttribute("data-id")
+    }
 }
