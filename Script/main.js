@@ -90,6 +90,9 @@ async function toVisData(list1 = [], list2 = []) {
     //添加节点
     for (let i = 0; i < listAll.length; i++) {
         let block = listAll[i];
+        if(!block.content){
+            continue;
+        }
         switch (block.type) {
             case "d":
             case "h":
