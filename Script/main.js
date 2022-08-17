@@ -90,7 +90,7 @@ async function toVisData(list1 = [], list2 = []) {
     //添加节点
     for (let i = 0; i < listAll.length; i++) {
         let block = listAll[i];
-        if(!block.content){
+        if (!block.content) {
             continue;
         }
         switch (block.type) {
@@ -188,13 +188,16 @@ function tag2label(tag) {
 }
 //父子节点是否仅限单个笔记本
 function parAndChiFlag(block) {
+    if (document.getElementById("parentCheck").value != "on") {
+        return false
+    }
     if (document.getElementById("notebooksCheck").value != "on") {
         return false
     }
     var notebook = document.getElementById("notebooks").value;
     if (block.box == notebook) {
         return true
-    }else{
+    } else {
         return false
     }
 }
