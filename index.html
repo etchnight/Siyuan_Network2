@@ -31,8 +31,12 @@
         <label for="parentCheck">是否显示父子节点</label>
         <input type="checkbox" id="parentCheck" ><br>
         <label for="notebooksCheck">父子节点是否仅限单个笔记本</label>
-        <input type="checkbox" id="notebooksCheck" ><br>
-        <select id="notebooks" title="选择笔记本"></select>
+        <input type="checkbox" id="notebooksCheck" >
+        <select id="notebooks" title="选择笔记本"></select><br>
+
+        <label for="relaCheck">关系是否采用双链表示</label>
+        <input type="checkbox" id="relaCheck" checked="checked">
+        <select id="relaNotebooks" title="选择笔记本"></select>
     </from>
     <div>
         <button onclick="reDraw();" type="button">重新绘制</button>

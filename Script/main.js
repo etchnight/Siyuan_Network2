@@ -86,13 +86,24 @@ async function findAndAdd(id) {
 async function toVisData(list1 = [], list2 = []) {
     var nodes = [];
     var edges = [];
-    var listAll = _.concat(list1, list2)
+    //var listAll = _.concat(list1, list2)
     //添加节点
-    for (let i = 0; i < listAll.length; i++) {
-        let block = listAll[i];
+    for (let i = 0; i < list1.length + list2.length; i++) {
+        let block;
+        if (i >= list1.length) {
+            block = list2[i - list1.length];
+        } else {
+            block = list1[i];
+        }
+        //不算关系box中的节点
+        if (block.box == document.getElementById("relaNotebooks").value &&
+            document.getElementById("relaCheck").value == "on") {
+            block = "";
+        }
         if (!block.content) {
             continue;
         }
+
         switch (block.type) {
             case "d":
             case "h":
@@ -103,10 +114,19 @@ async function toVisData(list1 = [], list2 = []) {
                 })
                 break;
             default:
-                let label;
+                let label="";
                 if (block.name) {
                     label = block.name;
-                } else {
+                }
+                if (!label) {
+                    let labelBlock = await Siyuan_sql_FindDefbyID(block.id);
+                    for(const ele of labelBlock){
+                        if(ele.box==document.getElementById("relaNotebooks").value){
+                            label=ele.content
+                        }
+                    }
+                }
+                if (!label) {
                     let tag = await Siyuan_sql_FindTagContentbyID(block.id);
                     label = tag2label(tag);
                 }
@@ -124,10 +144,12 @@ async function toVisData(list1 = [], list2 = []) {
         let block1 = list1[i];
         for (let j = 0; j < list2.length; j++) {
             let block2 = list2[j];
-            edges.push({
-                "from": block1.id,
-                "to": block2.id
-            });
+            if (block1.id && block2.id) {
+                edges.push({
+                    "from": block1.id,
+                    "to": block2.id
+                });
+            }
         }
     }
     AddNodes(nodes)
@@ -204,6 +226,13 @@ function parAndChiFlag(block) {
 //列出笔记本
 document.addEventListener('DOMContentLoaded', () => {
     const notebooksElement = document.getElementById('notebooks')
+    notebooksElement.addEventListener('change', () => {
+        notebooksElement.setAttribute("data-id", notebooksElement.value)
+    })
+    getNotebooks(notebooksElement)
+})
+document.addEventListener('DOMContentLoaded', () => {
+    const notebooksElement = document.getElementById('relaNotebooks')
     notebooksElement.addEventListener('change', () => {
         notebooksElement.setAttribute("data-id", notebooksElement.value)
     })
