@@ -5,10 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Network2</title>
+    <script src="./Script/test.js"></script>
     <script src="./Script/SiyuanConnect.js"></script>
     <script src="./Script/main.js"></script>
-    <script src="./Script/vis-network.min.js"></script>
-    <script src="./Script/lodash.min.js"></script>
+    <script src="./Script/event.js"></script>
+    <script src="./lib/echarts.min.js"></script>
+    <script src="./lib/lodash.min.js"></script>
     <style type="text/css">
         #mynetwork {
             height: 600px;
@@ -17,6 +19,17 @@
 
         label {
             background-color: whitesmoke;
+        }
+    </style>
+    <style>
+        #echartsGraph,
+        html,
+        body {
+            width: 100%;
+        }
+
+        #echartsGraph {
+            height: 400px;
         }
     </style>
 </head>
@@ -29,9 +42,9 @@
         <label for="divideTag">关系属性标签分组</label><br>
         <input id="divideTag" type="text" value="1" /><br>
         <label for="parentCheck">是否显示父子节点</label>
-        <input type="checkbox" id="parentCheck" ><br>
+        <input type="checkbox" id="parentCheck"><br>
         <label for="notebooksCheck">父子节点是否仅限单个笔记本</label>
-        <input type="checkbox" id="notebooksCheck" >
+        <input type="checkbox" id="notebooksCheck">
         <select id="notebooks" title="选择笔记本"></select><br>
 
         <label for="relaCheck">关系是否采用双链表示</label>
@@ -39,20 +52,9 @@
         <select id="relaNotebooks" title="选择笔记本"></select>
     </from>
     <div>
-        <button onclick="reDraw();" type="button">重新绘制</button>
+        <button onclick="main();" type="button">绘制</button>
     </div>
-    <div id="mynetwork"></div>
-    <script type="text/javascript">
-        //var node = window.frameElement.parentElement.parentElement;
-        var id = document.getElementById("node-id").value;
-        //id = "20220602091720-j7te3k9"
-        main(id)
-        async function test() {
-            var result = document.getElementById("boxcheck");
-            console.log(result)
-        }
-        //test()
-    </script>
+    <div id="echartsGraph"></div>
 </body>
 
 </html>
