@@ -1,4 +1,5 @@
 "use strict";
+/*图表相关，包括图表交互事件 */
 //初始化图表
 function initGraph() {
     var myChart = echarts.init(document.getElementById('echartsGraph'));
@@ -21,3 +22,8 @@ function initGraph() {
     myChart.setOption(initOptions);
     return myChart
 }
+
+//响应容器大小的变化
+window.onresize = function () {
+    myChart.resize();
+};

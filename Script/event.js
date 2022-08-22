@@ -1,8 +1,5 @@
 "use strict";
-//响应容器大小的变化
-window.onresize = function () {
-    myChart.resize();
-};
+/*界面交互相关，仅限与主界面交互，图表相关交互在graph.js文件*/ 
 
 //列出笔记本
 document.addEventListener('DOMContentLoaded', () => {

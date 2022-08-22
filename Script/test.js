@@ -1,5 +1,18 @@
-async function test() {
-    //var result = document.getElementById("boxcheck");
-    var result = await Siyuan_sql_FindbyID("20220728153429-jlmio38")
-    console.log(result)
+function test() {
+    /** @type EChartsOption */
+    nodes=[{
+        name:"n1"
+    },{
+        name:"n2"
+    },{
+        name:"n3"
+    }];
+    edges=[{
+        source: "n1",
+        target: "n2"
+    },{
+        source: "n1",
+        target: "n3"
+    }]
+    return [nodes,edges]
 }

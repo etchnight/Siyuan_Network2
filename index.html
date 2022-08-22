@@ -13,17 +13,8 @@
     <script src="./Script/dataGenerate.js"></script>
     <script src="./lib/echarts.min.js"></script>
     <script src="./lib/lodash.min.js"></script>
-
-    <style type="text/css">
-        #mynetwork {
-            height: 600px;
-            border: 1px solid lightgray;
-        }
-
-        label {
-            background-color: whitesmoke;
-        }
-    </style>
+    <script src="./config.js"></script>
+    <link rel="stylesheet" type="text/css" href="./style/style.css">
     <style>
         #echartsGraph,
         html,
@@ -39,9 +30,9 @@
 
 
 <body>
+    <input id="node-id" type="text" name="text" class="input" placeholder="起点块ID" value="20220602220527-pape8r3">
+    <br>
     <from>
-        <label for="node-id">Id</label><br>
-        <input id="node-id" type="text" value="20220602220527-pape8r3" /><br>
         <label for="divideTag">关系属性标签分组</label><br>
         <input id="divideTag" type="text" value="1" /><br>
         <label for="parentCheck">是否显示父子节点</label>
