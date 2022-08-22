@@ -1,3 +1,4 @@
+"use strict";
 //响应容器大小的变化
 window.onresize = function () {
     myChart.resize();
