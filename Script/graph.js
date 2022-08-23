@@ -6,7 +6,8 @@ function initGraph() {
     /** @type EChartsOption */
     var initOptions = {
         title: {
-            text: '知识网络图'
+            text: '知识网络图',
+            show: false
         },
         series: [
             {

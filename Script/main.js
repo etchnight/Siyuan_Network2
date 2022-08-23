@@ -1,11 +1,12 @@
 "use strict";
-/*主进程，模式判断相关 */
+/*主流程，数据与图表通信 */
 async function main() {
-    var myChart = initGraph();
-    var id = await initId();
     var nodes = [];
     var edges = [];
-    [nodes, edges] = await findAndAdd(id);
+    //只有一个id需要获得，就不从config中获取了
+    const dataServer=new dataGenerate(document.getElementById("nodeId").value);
+    [nodes, edges] = await dataServer.findAndAdd();
+    var myChart = initGraph();
     /** @type EChartsOption */
     myChart.setOption({
         series: [
@@ -16,23 +17,7 @@ async function main() {
             }
         ]
     })
-    //console.log(myChart.getOption())
+    console.log(myChart.getOption())
 }
 
-
-//父子节点是否仅限单个笔记本
-function parAndChiFlag(block) {
-    if (document.getElementById("parentCheck").value != "on") {
-        return false
-    }
-    if (document.getElementById("notebooksCheck").value != "on") {
-        return false
-    }
-    var notebook = document.getElementById("notebooks").value;
-    if (block.box == notebook) {
-        return true
-    } else {
-        return false
-    }
-}
 

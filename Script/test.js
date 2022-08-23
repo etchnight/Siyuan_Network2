@@ -16,3 +16,10 @@ function test() {
     }]
     return [nodes,edges]
 }
+
+//设置测试值
+document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById("nodeId").value="20220602220527-pape8r3";
+    main()
+    //config()
+})
