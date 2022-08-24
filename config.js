@@ -23,10 +23,9 @@ function config() {
     blockShow.tagGroup = document.getElementById("tagGroup").value;
 
     blockShow.isRefInBox = document.getElementById("isRefInBox").checked;
-    blockShow.refBox = checkInput("refBox", blockShow.isRefInBox);
-
+    [blockShow.isRefInBox, blockShow.refBox] = checkInput("refBox", blockShow.isRefInBox);
     blockShow.isRefAfterDivide = document.getElementById("isRefAfterDivide").checked;
-    blockShow.refDivide = checkInput("refDivide", blockShow.isRefAfterDivide);
+    [blockShow.isRefAfterDivide, blockShow.refDivide] = checkInput("refDivide", blockShow.isRefAfterDivide);
 
     blockShow.isShowByPriority = document.getElementById("isShowByPriority").checked;
 
@@ -44,14 +43,13 @@ function config() {
     //检查输入，缺少必填项直接把按钮改成false
     function checkInput(id, preConfig) {
         if (!preConfig) {
-            return ""
+            return [preConfig, ""]
         }
         const dom = document.getElementById(id)
         if (!dom.value) {
-            alert(`未输入必填项"${dom.parentElement.innerText}"，
-            程序会按照该项未选择执行`)
-            preConfig = false
+            //alert(`未输入必填项，程序会按照该项未选择执行`)
+            return [false, ""]
         }
-        return dom.value
+        return [preConfig, dom.value]
     }
 }

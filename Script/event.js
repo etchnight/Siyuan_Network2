@@ -11,7 +11,41 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         getNotebooks(notebooksElement)
     }
+
+
+
+    //空值检查
+    var voidCheckIds=[{
+        from:"isRefAfterDivide",
+        to:"refDivide"
+    },{
+        from:"isRefInBox",
+        to:"refBox"
+    }]
+    for(const e of voidCheckIds){
+        document.getElementById(e.from).addEventListener('click', () => {
+            var dom = document.getElementById(e.to);
+            if (document.getElementById(e.from).checked &&
+                !dom.value) {
+                dom.setAttribute("aria-invalid", "true")
+            } else {
+                dom.setAttribute("aria-invalid", "")
+    
+            }
+        })
+        document.getElementById(e.to).addEventListener('change', () => {
+            var dom = document.getElementById(e.to);
+            if (document.getElementById(e.from).checked &&
+                !dom.value) {
+                dom.setAttribute("aria-invalid", "true")
+            } else {
+                dom.setAttribute("aria-invalid", "")
+    
+            }
+        })
+    }
 })
+//列出笔记本
 async function getNotebooks(notebooksElement) {
     const notebooks = await Siyuan_lsNotebooks();
     if (notebooks.length > 0) {
