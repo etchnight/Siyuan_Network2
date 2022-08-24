@@ -24,6 +24,9 @@
 
         #echartsGraph {
             height: 400px;
+            border-width: 2px;
+            border-style: solid;
+            border-color: antiquewhite;
         }
     </style>
 </head>
@@ -115,21 +118,21 @@
             <details open>
                 <summary>引用增强模式</summary>
                 <div class="grid">
-                    <label for="refMergeActive" >
+                    <label for="refMergeActive">
                         <input type="checkbox" id="refMergeActive" role="switch">
                         是否开启
                     </label>
                     <p>以下块类型视为实体：</p>
-                    <label for="docIsNode" >
-                        <input type="checkbox" id="docIsNode" >
+                    <label for="docIsNode">
+                        <input type="checkbox" id="docIsNode">
                         文档块
                     </label>
-                    <label for="titleIsNode" >
-                        <input type="checkbox" id="titleIsNode" >
+                    <label for="titleIsNode">
+                        <input type="checkbox" id="titleIsNode">
                         标题块
                     </label>
-                    <label for="otherIsNode" >
-                        <input type="checkbox" id="otherIsNode" >
+                    <label for="otherIsNode">
+                        <input type="checkbox" id="otherIsNode">
                         其他块
                     </label>
                 </div>
@@ -162,9 +165,8 @@
         <div style="margin-top:20px" class="grid">
             <button onclick="main()" type="button">绘制</button>
         </div>
-        <div id="echartsGraph"> </div>
     </main>
-
+    <div id="echartsGraph"> </div>
 </body>
 
 </html>

@@ -134,14 +134,12 @@ class dataGenerate {
         if (!this.config.relation.isParent) {
             return
         }
-        if (this.config.parentBox) {
-            if (this.config.parentBox != block.box) {
-                return
-            }
+        if (this.config.parentBox != block.box) {
+            return
         }
         var parent = await Siyuan_sql_FindbyID(block.parent_id);
         if (parent) {
-            await toEchartsData([parent], [block]);
+            await this.toEchartsData([parent], [block]);
         }
         return
     }
@@ -154,10 +152,8 @@ class dataGenerate {
         if (!this.config.relation.isChildren) {
             return
         }
-        if (this.config.relation.parentBox) {
-            if (this.config.relation.parentBox != block.box) {
-                return
-            }
+        if (this.config.relation.parentBox != block.box) {
+            return
         }
         var children = await Siyuan_sql_FindbyParentID(block.id);
         if (children.length > 0) {
@@ -176,7 +172,7 @@ class dataGenerate {
         }
         var defList = await Siyuan_sql_FindDefbyID(block.id);
         if (defList.length > 0) {
-            await toEchartsData([block], defList);
+            await this.toEchartsData([block], defList);
         }
         return
     }

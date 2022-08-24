@@ -17,7 +17,7 @@ async function main() {
             }
         ]
     })
-    console.log(myChart.getOption())
+    return myChart.getOption()
 }
 
 
