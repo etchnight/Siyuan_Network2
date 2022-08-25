@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 //列出笔记本
 async function getNotebooks(notebooksElement) {
-    const notebooks = await Siyuan_lsNotebooks();
+    const siyuanService=new SiyuanConnect();
+    const notebooks = await siyuanService.lsNotebooks();
     if (notebooks.length > 0) {
         let optionsHTML = `<option value="">(空)</option>`
         notebooks.forEach(notebook => {

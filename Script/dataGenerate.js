@@ -7,6 +7,7 @@ class dataGenerate {
         this.edges = edges || [];
         //注意，这个id不一定是从网页获取到的，也可能是通过图表交互获得
         this.id = id;
+        this.siyuanService=new SiyuanConnect();
     }
     //block节点
     async blockNode(block) {
@@ -31,7 +32,7 @@ class dataGenerate {
             label.name = block.name
         }
         if (this.config.blockShow.isTag) {
-            let tag = await Siyuan_sql_FindTagContentbyID(block.id);
+            let tag = await this.siyuanService.sql_FindTagContentbyID(block.id);
             let tagGroup = this.config.blockShow.tagGroup;
             tag.forEach(e => {
                 if (tagGroup) {
@@ -73,7 +74,6 @@ class dataGenerate {
             }
         }
         result.label = this.delDivide(result.label)
-        //console.log(result.label)
         return result
     }
     edge() {
@@ -113,7 +113,7 @@ class dataGenerate {
             let index = markdown.indexOf("))");
             let ref = markdown.slice(0, index)
             let id = ref.slice(0, ref.indexOf(" "));
-            let block = await Siyuan_sql_FindbyID(id);
+            let block = await this.siyuanService.sql_FindbyID(id);
             //标定类型
             if (span == this.config.blockShow.refDivide + "((") {
                 blockList.push("关系");
@@ -203,7 +203,7 @@ class dataGenerate {
             this.config.parentBox != block.box) {
             return
         }
-        var parent = await Siyuan_sql_FindbyID(block.parent_id);
+        var parent = await this.siyuanService.sql_FindParentbyBlock(block)
         if (parent) {
             await this.toEchartsData([parent], [block]);
         }
@@ -222,7 +222,7 @@ class dataGenerate {
             this.config.relation.parentBox != block.box) {
             return
         }
-        var children = await Siyuan_sql_FindbyParentID(block.id);
+        var children = await this.siyuanService.sql_FindbyParentID(block.id);
         if (children.length > 0) {
             await this.toEchartsData([block], children);
         }
@@ -238,7 +238,7 @@ class dataGenerate {
             return
         }
         //引用需要经过过滤，不显示用于命名的引用
-        var defList = await this.refListInOrder(block.id);
+        var defList = await this.refListInOrder(block.markdown);
         var resultList = [];
         if (defList.length > 0) {
             let i = 0;
@@ -250,7 +250,7 @@ class dataGenerate {
                 }
                 i++
             }
-            await this.toEchartsData([block], defList);
+            await this.toEchartsData([block], resultList);
             return
         }
     }
@@ -262,12 +262,12 @@ class dataGenerate {
         if (!this.config.relation.isBackRef) {
             return
         }
-        var backDefList = await Siyuan_sql_FindBackDefbyID(block.id);
+        var backDefList = await this.siyuanService.sql_FindBackDefbyID(block.id);
         if (backDefList.length > 0) {
             await this.toEchartsData(backDefList, [block]);
             backDefList.forEach(async (element) => {
                 let id = element.id;//注意id变量的作用范围
-                let defList = await Siyuan_sql_FindDefbyID(id);
+                let defList = await this.siyuanService.sql_FindDefbyID(id);
                 if (defList.length > 0) {
                     await this.toEchartsData([element], defList);
                 }
@@ -280,7 +280,7 @@ class dataGenerate {
         if (!this.id) {
             return
         }
-        var block = await Siyuan_sql_FindbyID(this.id);
+        var block = await this.siyuanService.sql_FindbyID(this.id);
         await this.dataParent(block);
         await this.dataChildren(block);
         await this.dataRef(block);
