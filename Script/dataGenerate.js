@@ -10,7 +10,7 @@ class dataGenerate {
     }
     //block节点
     async blockNode(block) {
-        if (!block) {
+        if (!block.content) {
             return
         }
         var result = {
@@ -25,8 +25,7 @@ class dataGenerate {
             name: "",
             content: "",
             tag: "",
-            refInBox: "",
-            refAfterDivide: "",
+            ref: ""
         }
         if (this.config.blockShow.isName) {
             label.name = block.name
@@ -46,26 +45,16 @@ class dataGenerate {
             })
             label.tag = this.delDivide(label.tag);
         }
-       // console.log(this.config.blockShow.refBox)
-        if (this.config.blockShow.isRefInBox) {
-            let labelBlock = await Siyuan_sql_FindDefbyID(block.id);
-            for (const ele of labelBlock) {
-                if (ele.box == this.config.blockShow.refBox) {
-                    label.refInBox += ele.content + "/"
-                }
-            }
-            label.refInBox = this.delDivide(label.refInBox)
-        }
-        if (this.config.blockShow.isRefAfterDivide) {
-            const refDivide = this.config.blockShow.refDivide;
-            const refList = this.refListInOrder(block.markdown, [refDivide])
+        if ((this.config.blockShow.isRefAfterDivide ||
+            this.config.blockShow.isRefInBox) &&
+            block.markdown) {
+            const refList = await this.refListInOrder(block.markdown)
             for (let i = 0; i < refList.length; i++) {
-                if (refList[i] == refDivide) {
-                    let labelBlock = await Siyuan_sql_FindbyID(refList[i + 1]);
-                    label.refAfterDivide += labelBlock.content + "/"
+                if (refList[i] == "关系" && refList[i + 1]) {
+                    label.ref += refList[i + 1].content + "/"
                 }
             }
-            label.refAfterDivide = this.delDivide(label.refAfterDivide)
+            label.ref = this.delDivide(label.ref)
         }
         switch (block.type) {
             case "d":
@@ -90,12 +79,20 @@ class dataGenerate {
     edge() {
 
     }
-    refListInOrder(markdown, divideList) {
+    async refListInOrder(markdown) {
+        var divideList = [];
+        var refBox = "";
+        if (this.config.blockShow.isRefInBox) {
+            refBox = this.config.blockShow.refBox;
+        }
+        if (this.config.blockShow.isRefAfterDivide) {
+            divideList.push(this.config.blockShow.refDivide);
+        }
         for (const i in divideList) {
             divideList[i] += "(("
         }
         divideList.push("((");
-        var strList = [];
+        var blockList = [];
         var preIndex = 0;
         while (markdown) {
             let minIndex = markdown.length;
@@ -112,19 +109,24 @@ class dataGenerate {
             if (!markdown) {
                 break;
             }
-            //提取分隔
-            if (span != "((") {
-                strList.push(span.slice(0, -2));
-            }
             //提取id
             let index = markdown.indexOf("))");
             let ref = markdown.slice(0, index)
-            strList.push(ref.slice(0, ref.indexOf(" ")));
+            let id = ref.slice(0, ref.indexOf(" "));
+            let block = await Siyuan_sql_FindbyID(id);
+            //标定类型
+            if (span == this.config.blockShow.refDivide + "((") {
+                blockList.push("关系");
+            }
+            if (block.box == refBox) {
+                blockList.push("关系");
+            }
+            blockList.push(block);
             //去掉))之前
             preIndex = index + 2;
             markdown = markdown.slice(preIndex);
         }
-        return strList
+        return blockList
     }
     //接收两个block列表,将它们转化为list1 to list2的形式
     //并添加到节点和边
@@ -137,11 +139,6 @@ class dataGenerate {
             } else {
                 block = list1[i];
             }
-            //不算关系box中的节点
-            /*if (block.box == document.getElementById("relaNotebooks").value &&
-                document.getElementById("relaCheck").value == "on") {
-                block = "";
-            }*/
             //滤除空块
             if (!block.content) {
                 continue;
@@ -202,7 +199,7 @@ class dataGenerate {
         if (!this.config.relation.isParent) {
             return
         }
-        if (this.config.parentBox && 
+        if (this.config.parentBox &&
             this.config.parentBox != block.box) {
             return
         }
@@ -240,13 +237,23 @@ class dataGenerate {
         if (!this.config.relation.isRef) {
             return
         }
-        var defList = await Siyuan_sql_FindDefbyID(block.id);
+        //引用需要经过过滤，不显示用于命名的引用
+        var defList = await this.refListInOrder(block.id);
+        var resultList = [];
         if (defList.length > 0) {
+            let i = 0;
+            while (defList[i]) {
+                if (defList[i] == "关系") {
+                    i++
+                } else {
+                    resultList.push(defList[i])
+                }
+                i++
+            }
             await this.toEchartsData([block], defList);
+            return
         }
-        return
     }
-
     //反向引用
     async dataBackRef(block) {
         if (!block) {
@@ -282,6 +289,9 @@ class dataGenerate {
     }
     //删除最后一个“/”
     delDivide(str) {
+        if (!str) {
+            return
+        }
         if (str.lastIndexOf("/") == str.length - 1) {
             return str.slice(0, -1);
         } else {
