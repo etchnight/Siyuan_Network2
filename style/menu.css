@@ -1,0 +1,31 @@
+.right-menu {
+  position: fixed;
+  z-index: 999;
+  display: none;
+  font-size: 5px;
+  width: 75px;
+  height: auto;
+  padding: 5px 0px;
+  border-radius: 5px;
+  background-color: #fff;
+  box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24);
+  color: #333;
+}
+.right-menu .menu-item {
+  height: 24px;
+  line-height: 24px;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.right-menu .menu-item:hover {
+  background-color: #ddd;
+}
+.right-menu .menu-item a {
+  padding: 0 0 0 7px;
+  text-decoration: none;
+  display: block;
+  height: 100%;
+  /*font-weight: bold;*/
+}

@@ -42,7 +42,10 @@ async function main_add(id) {
     ],
   });
 }
+//收起节点
+async function main_del(id){
 
+}
 if (typeof module === "object") {
   module.exports = { main, main_add };
 }
