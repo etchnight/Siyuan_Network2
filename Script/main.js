@@ -1,5 +1,5 @@
 "use strict";
-/*global dataGenerate initGraph:true*/
+/*global dataGenerate initGraph echarts:true*/
 
 /*主流程，数据与图表通信 */
 async function main() {
@@ -21,7 +21,28 @@ async function main() {
   });
   return myChart.getOption();
 }
+//增加节点
+async function main_add(id) {
+  var myChart = echarts.getInstanceByDom(
+    document.getElementById("echartsGraph")
+  );
+  const option = myChart.getOption();
+  var nodes = option.series[0].data;
+  var edges = option.series[0].links;
+  const dataServer = new dataGenerate(id, nodes, edges);
+  [nodes, edges] = await dataServer.findAndAdd();
+  /** @type EChartsOption */
+  myChart.setOption({
+    series: [
+      {
+        type: "graph",
+        data: nodes,
+        links: edges,
+      },
+    ],
+  });
+}
 
 if (typeof module === "object") {
-  module.exports = main;
+  module.exports = { main, main_add };
 }

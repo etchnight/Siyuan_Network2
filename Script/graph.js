@@ -1,5 +1,5 @@
 "use strict";
-/*global echarts :true*/
+/*global echarts main_add:true*/
 
 /*图表相关，包括图表交互事件 */
 //初始化图表
@@ -11,25 +11,10 @@ function initGraph() {
       text: "知识网络图",
       show: false,
     },
-    /*xAxis: {
-            id: 'xAixsGlobe',
-            show: true,
-            type: 'value',
-            min: 'dataMin',
-            max: 'dataMax',
-        },
-        yAxis: {
-            id: 'yAixsGlobe',
-            show: true,
-            type: 'value',
-            min: 'dataMin',
-            max: 'dataMax',
-        },
-        dataZoom: [{
-            type: 'inside',
-            xAxisIndex: [0],
-            yAxisIndex: [0],
-        }],*/
+    tooltip: {
+      show: true,
+      trigger: 'item',
+    },
     series: [
       {
         id: "graphMain",
@@ -43,6 +28,12 @@ function initGraph() {
           },
         },
         roam: true,
+        tooltip: {
+          position: 'top',
+          formatter: (data)=>{
+            return data.data.content
+          }
+        },
       },
     ],
   };
@@ -57,6 +48,13 @@ function initGraph() {
   window.onresize = function () {
     myChart.resize();
   };
+  myChart.on("dblclick", function (params) {
+    if (params.dataType != "node") {
+      return;
+    }
+    var id = params.data.name;
+    main_add(id);
+  });
   return myChart;
 }
 

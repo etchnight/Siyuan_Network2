@@ -1,171 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Network2</title>
-    <script src="./Script/test.js"></script>
     <script src="./Script/SiyuanConnect.js"></script>
     <script src="./Script/main.js"></script>
     <script src="./Script/event.js"></script>
     <script src="./Script/graph.js"></script>
     <script src="./Script/dataGenerate.js"></script>
     <script src="./lib/echarts.min.js"></script>
-    <script type='module' src="./lib/lodash.min.js"></script>
+    <script src="./lib/lodash.min.js"></script>
     <script src="./config.js"></script>
-    <link rel="stylesheet" type="text/css" href="./style/pico.min.css">
+    <script src="./Script/test.js"></script>
+    <link rel="stylesheet" type="text/css" href="./style/pico.min.css" />
     <style>
-        #echartsGraph,
-        html,
-        body {
-            width: 100%;
-        }
-
-        #echartsGraph {
-            height: 400px;
-            border-width: 2px;
-            border-style: solid;
-            border-color: antiquewhite;
-        }
+      #echartsGraph,
+      html,
+      body {
+        width: 100%;
+      }
+      #echartsContainer {
+        position: relative;
+        width: 95%;
+        left: 2.5%;
+        height: 0;
+        padding: 0;
+        padding-bottom: 75%;
+        border-width: 2px;
+        border-style: solid;
+        border-color: antiquewhite;
+      }
+      #echartsGraph {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
     </style>
-</head>
+  </head>
 
-
-<body>
+  <body>
     <main class="container">
-        <div>
-            <label for="nodeId">初始块ID，即绘图开始节点</label>
-            <input autocomplete="off" id="nodeId" type="text">
-        </div>
-        <details>
-            <summary role="button" class="secondary">配置选项</summary>
-            <details open>
-                <summary>关系建立选项</summary>
-                <div class="grid">
-                    <label for="isParent">
-                        <input type="checkbox" checked="checked" id="isParent" role="switch">
-                        是否显示父节点
-                    </label>
-                    <label for="isChildren">
-                        <input type="checkbox" checked="checked" id="isChildren" role="switch">
-                        是否显示子节点
-                    </label>
-                    <p>
-                        如需要父子节点仅限特定笔记本，请选择→
-                    </p>
-                    <label for="isChildren">
-                        <select id="parentBox" title="parentBox"></select>
-                    </label>
-                </div>
-                <div class="grid">
-                    <label for="isRef">
-                        <input type="checkbox" checked="checked" id="isRef" role="switch">
-                        是否显示引用
-                    </label>
-                    <label for="isBackRef">
-                        <input type="checkbox" checked="checked" id="isBackRef" role="switch">
-                        是否显示反向引用
-                    </label>
-                    <div></div>
-                    <div></div>
-                </div>
-            </details>
-            <details open>
-                <summary>block的名称展示方式选项</summary>
-                <div class="grid">
-                    <label for="isName">
-                        <input type="checkbox" id="isName" role="switch">
-                        块命名
-                    </label>
-                    <label for="isTag">
-                        <input type="checkbox" id="isTag" role="switch">
-                        标签
-                    </label>
-                    <p>
-                        如需仅限特定分组标签，请输入标签所在分组→
-                    </p>
-                    <label for="tagGroup">
-                        <input autocomplete="off" id="tagGroup" type="text" title="标签所在分组">
-                    </label>
-                </div>
-                <div class="grid">
-                    <label for="isRefInBox" style="margin-top:40px">
-                        <input type="checkbox" id="isRefInBox" role="switch">
-                        特定笔记本内引用
-                    </label>
-                    <label for="refBox">
-                        所在笔记本
-                        <select id="refBox" title="parentBox"></select>
-                    </label>
-                    <label for="isRefAfterDivide" style="margin-top:40px">
-                        <input type="checkbox" id="isRefAfterDivide" role="switch">
-                        特定分隔后引用
-                    </label>
-                    <label for="refDivide">
-                        分隔符号
-                        <input autocomplete="off" id="refDivide" type="text">
-                    </label>
-                </div>
-                <div>
-                    <label for="isShowByPriority">
-                        开启项全部显示(不推荐)
-                        <input type="checkbox" id="isShowByPriority" role="switch" checked>
-                        开启项按优先级显示，优先级顺序：块命名->文档块和标题块的内容->标签->特定符号后引用->特定笔记本引用
-                    </label>
-                </div>
-            </details>
-            <details open>
-                <summary>引用增强模式</summary>
-                <div class="grid">
-                    <label for="refMergeActive">
-                        <input type="checkbox" id="refMergeActive" role="switch">
-                        是否开启
-                    </label>
-                    <p>以下块类型视为实体：</p>
-                    <label for="docIsNode">
-                        <input type="checkbox" id="docIsNode">
-                        文档块
-                    </label>
-                    <label for="titleIsNode">
-                        <input type="checkbox" id="titleIsNode">
-                        标题块
-                    </label>
-                    <label for="otherIsNode">
-                        <input type="checkbox" id="otherIsNode">
-                        其他块
-                    </label>
-                </div>
-                <div class="grid">
-                    <label for="nodeNotebook">
-                        实体所在文件夹（留空则为全部）
-                        <select id="nodeNotebook" title="nodeNotebook"></select>
-                    </label>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
-            </details>
-            <details open>
-                <summary>其它</summary>
-                <div class="grid">
-                    <label for="port">
-                        端口号
-                        <input autocomplete="off" id="port" type="text">
-                    </label>
-                    <div></div>
-                    <div></div>
-                </div>
-            </details>
-            <div style="margin-top:20px">
-                <a href="javascript:void(0);" οnclick="main()" role="button" class="secondary">还原上次配置</a>
-                <a href="javascript:void(0);" οnclick="main()" role="button">保存配置</a>
-            </div>
+      <div>
+        <label for="nodeId">初始块ID，即绘图开始节点</label>
+        <input autocomplete="off" id="nodeId" type="text" />
+      </div>
+      <details>
+        <summary role="button" class="secondary">配置选项</summary>
+        <details open>
+          <summary>关系建立选项</summary>
+          <div class="grid">
+            <label for="isParent">
+              <input
+                type="checkbox"
+                checked="checked"
+                id="isParent"
+                role="switch"
+              />
+              是否显示父节点
+            </label>
+            <label for="isChildren">
+              <input
+                type="checkbox"
+                checked="checked"
+                id="isChildren"
+                role="switch"
+              />
+              是否显示子节点
+            </label>
+            <p>如需要父子节点仅限特定笔记本，请选择→</p>
+            <label for="isChildren">
+              <select id="parentBox" title="parentBox"></select>
+            </label>
+          </div>
+          <div class="grid">
+            <label for="isRef">
+              <input
+                type="checkbox"
+                checked="checked"
+                id="isRef"
+                role="switch"
+              />
+              是否显示引用
+            </label>
+            <label for="isBackRef">
+              <input
+                type="checkbox"
+                checked="checked"
+                id="isBackRef"
+                role="switch"
+              />
+              是否显示反向引用
+            </label>
+            <div></div>
+            <div></div>
+          </div>
         </details>
-        <div style="margin-top:20px" class="grid">
-            <button onclick="main()" type="button">绘制</button>
+        <details open>
+          <summary>block的名称展示方式选项</summary>
+          <div class="grid">
+            <label for="isName">
+              <input type="checkbox" id="isName" role="switch" />
+              块命名
+            </label>
+            <label for="isTag">
+              <input type="checkbox" id="isTag" role="switch" />
+              标签
+            </label>
+            <p>如需仅限特定分组标签，请输入标签所在分组→</p>
+            <label for="tagGroup">
+              <input
+                autocomplete="off"
+                id="tagGroup"
+                type="text"
+                title="标签所在分组"
+              />
+            </label>
+          </div>
+          <div class="grid">
+            <label for="isRefInBox" style="margin-top: 40px">
+              <input type="checkbox" id="isRefInBox" role="switch" />
+              特定笔记本内引用
+            </label>
+            <label for="refBox">
+              所在笔记本
+              <select id="refBox" title="parentBox"></select>
+            </label>
+            <label for="isRefAfterDivide" style="margin-top: 40px">
+              <input type="checkbox" id="isRefAfterDivide" role="switch" />
+              特定分隔后引用
+            </label>
+            <label for="refDivide">
+              分隔符号
+              <input autocomplete="off" id="refDivide" type="text" />
+            </label>
+          </div>
+          <div>
+            <label for="isShowByPriority">
+              开启项全部显示(不推荐)
+              <input
+                type="checkbox"
+                id="isShowByPriority"
+                role="switch"
+                checked
+              />
+              开启项按优先级显示，优先级顺序：块命名->文档块和标题块的内容->标签->特定符号后引用->特定笔记本引用
+            </label>
+          </div>
+        </details>
+        <details open>
+          <summary>引用增强模式</summary>
+          <div class="grid">
+            <label for="refMergeActive">
+              <input type="checkbox" id="refMergeActive" role="switch" />
+              是否开启
+            </label>
+            <p>以下块类型视为实体：</p>
+            <label for="docIsNode">
+              <input type="checkbox" id="docIsNode" />
+              文档块
+            </label>
+            <label for="titleIsNode">
+              <input type="checkbox" id="titleIsNode" />
+              标题块
+            </label>
+            <label for="otherIsNode">
+              <input type="checkbox" id="otherIsNode" />
+              其他块
+            </label>
+          </div>
+          <div class="grid">
+            <label for="nodeNotebook">
+              实体所在文件夹（留空则为全部）
+              <select id="nodeNotebook" title="nodeNotebook"></select>
+            </label>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </details>
+        <details open>
+          <summary>其它</summary>
+          <div class="grid">
+            <label for="port">
+              端口号
+              <input autocomplete="off" id="port" type="text" />
+            </label>
+            <div></div>
+            <div></div>
+          </div>
+        </details>
+        <div style="margin-top: 20px">
+          <a
+            href="javascript:void(0);"
+            οnclick="main()"
+            role="button"
+            class="secondary"
+            >还原上次配置</a
+          >
+          <a href="javascript:void(0);" οnclick="main()" role="button"
+            >保存配置</a
+          >
         </div>
+      </details>
+      <div style="margin-top: 20px" class="grid">
+        <button onclick="main()" type="button">绘制</button>
+      </div>
     </main>
-    <div id="echartsGraph"> </div>
-</body>
+    <div id="echartsContainer">
+      <div id="echartsGraph"></div>
+    </div>
+  </body>
 </html>

@@ -515,7 +515,50 @@ class SiyuanConnect {
     );
     return response;
   };
-  //return this
+  //根据顺序返回关键词（引用和标签)列表，可以追加关键词列表(字符串列表)
+  keywordListInOrder = async function (block, otherList) {
+    const id = block.id;
+    const tagList = await this.sql_FindTagbyID(id);
+    let refList = await this.sql_FindDefbyID(id);
+    let keywordList = [];
+    for (let e of refList) {
+      if (!e.markdown) {
+        e.markdown = e.content;
+      }
+      keywordList.push(e);
+    }
+    for (const e of otherList) {
+      if (e) {
+        keywordList.push({
+          markdown: e,
+          type: "text",
+        });
+      }
+    }
+    keywordList = keywordList.concat(tagList);
+    let markdown = block.markdown;
+    let resultList = [];
+    let preIndex = 0;
+    while (markdown) {
+      let minIndex = markdown.length;
+      let item = "";
+      for (const e of keywordList) {
+        let index = markdown.indexOf(e.markdown);
+        if (index < minIndex && index >= 0) {
+          minIndex = index;
+          item = e;
+        }
+      }
+      if (!item) {
+        break;
+      }
+      //截取
+      preIndex = minIndex + item.markdown.length;
+      markdown = markdown.slice(preIndex);
+      resultList.push(item);
+    }
+    return resultList;
+  };
 }
 if (typeof module === "object") {
   module.exports = SiyuanConnect;

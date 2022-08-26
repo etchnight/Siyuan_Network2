@@ -19,7 +19,7 @@ class dataGenerate {
     var result = {
       name: block.id,
       label: "",
-      content: block.content,
+      content: block.content || block.markdown,
       box: block.box,
       doc: block.root_id,
       type: block.type,
@@ -81,6 +81,8 @@ class dataGenerate {
     return result;
   }
   edge() {}
+  //从文本中提取引用id，siyuanserver中有类似方法
+  //但有改动，暂时不合并
   async refListInOrder(markdown) {
     var divideList = [];
     var refBox = "";
