@@ -24,12 +24,19 @@ function initGraph() {
         label: {
           show: true,
           formatter: (data) => {
-            return data.data.label;
+            let label;
+            if (data.data.label) {
+              label = data.data.label;
+            } else {
+              label = data.data.content.slice(0, 5) + "...";
+            }
+            return label;
           },
         },
         roam: true,
-        edgeSymbol: ['none', 'arrow'],
-        tooltip: {//悬浮显示
+        edgeSymbol: ["none", "arrow"],
+        tooltip: {
+          //悬浮显示
           position: "top",
           formatter: (data) => {
             return data.data.content;
@@ -77,7 +84,7 @@ function initGraph() {
     //console.log(params);
   });
   //移除右键菜单
-  myChart.getZr().on('click', function(event) {
+  myChart.getZr().on("click", function (event) {
     // 没有 target 意味着鼠标/指针不在任何一个图形元素上，它是从“空白处”触发的。
     if (!event.target) {
       var menu = document.getElementById("echartsMenu");

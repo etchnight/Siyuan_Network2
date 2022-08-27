@@ -244,7 +244,7 @@ class SiyuanConnect {
   sql_FindParentbyBlock = async function (block) {
     var response;
     if (block.parent_id) {
-      response = await this.sql_FindbyID(block.parent);
+      response = await this.sql_FindbyID(block.parent_id);
       return response;
     }
     if (block.type == "d") {

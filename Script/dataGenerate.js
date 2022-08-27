@@ -77,7 +77,9 @@ class dataGenerate {
         break;
       }
     }
-    result.label = this.delDivide(result.label);
+    if (result.label) {
+      result.label = this.delDivide(result.label);
+    }
     return result;
   }
   //从文本中提取引用id，siyuanserver中有类似方法
@@ -395,9 +397,15 @@ class dataGenerate {
     let andList = [];
     let stopNode; //暂存的上一组组配结果
     let relaNode = await this.blockNode(block);
+    let relaFlag = false;
     for (let i = 0; i < keywordListInOrder.length; i++) {
       const node = keywordListInOrder[i];
       const blockNode = await this.blockNode(node);
+      //因为无分隔符号导致未找到关系时，会默认将最后一个实体作为关系处理
+      if (i == keywordListInOrder.length - 1 && relaFlag == false) {
+        node.dataType = "关系";
+        andList.push(blockNode);
+      }
       //普通实体
       if (node.dataType == "实体") {
         if (preNode) {
@@ -435,13 +443,18 @@ class dataGenerate {
       }
       //关系
       if (node.dataType == "关系") {
-        andList.push(preNode);
+        relaFlag = true;
+        andList.push(preNode); //这样及时andList为空也可以运行
         preNode = null;
         let label = "";
         for (const a of andList) {
           label += a.label + "/";
         }
-        relaNode.label = label + relaNode.label;
+        if (relaNode.label) {
+          relaNode.label = label + relaNode.label;
+        } else {
+          relaNode.label = this.delDivide(label);
+        }
         await this.toEchartsData(andList, [relaNode]);
         andList = [];
       }
