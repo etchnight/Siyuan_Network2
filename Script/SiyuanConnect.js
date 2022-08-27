@@ -243,7 +243,7 @@ class SiyuanConnect {
   //sql查询--查询父块
   sql_FindParentbyBlock = async function (block) {
     var response;
-    if (block.parent) {
+    if (block.parent_id) {
       response = await this.sql_FindbyID(block.parent);
       return response;
     }
@@ -271,6 +271,13 @@ class SiyuanConnect {
         "(SELECT def_block_id FROM refs WHERE block_id='" +
         id +
         "')"
+    );
+    return response;
+  };
+  //sql查询--根据块ID查询其引用(原始内容)
+  sql_FindDefAnchorbyID = async function (id) {
+    const response = await this.sql(
+      `SELECT * FROM refs WHERE block_id='${id}'`
     );
     return response;
   };
@@ -519,13 +526,13 @@ class SiyuanConnect {
   keywordListInOrder = async function (block, otherList) {
     const id = block.id;
     const tagList = await this.sql_FindTagbyID(id);
-    let refList = await this.sql_FindDefbyID(id);
+    let refList = await this.sql_FindDefAnchorbyID(id);
     let keywordList = [];
     for (let e of refList) {
-      if (!e.markdown) {
-        e.markdown = e.content;
-      }
-      keywordList.push(e);
+      //将锚文本替换为原始内容（content）
+      let block = await this.sql_FindbyID(e.def_block_id);
+      block.markdown = e.markdown;
+      keywordList.push(block);
     }
     for (const e of otherList) {
       if (e) {
@@ -539,6 +546,7 @@ class SiyuanConnect {
     let markdown = block.markdown;
     let resultList = [];
     let preIndex = 0;
+    let preMaxIndex = 0;
     while (markdown) {
       let minIndex = markdown.length;
       let item = "";
@@ -554,6 +562,9 @@ class SiyuanConnect {
       }
       //截取
       preIndex = minIndex + item.markdown.length;
+      item.minIndex = minIndex + preMaxIndex;
+      item.maxIndex = preIndex + preMaxIndex;
+      preMaxIndex += preIndex;
       markdown = markdown.slice(preIndex);
       resultList.push(item);
     }

@@ -41,10 +41,21 @@ function config() {
   config.refMerge = {};
   var refMerge = config.refMerge;
   refMerge.active = document.getElementById("refMergeActive").checked;
-  refMerge.nodeNotebook = document.getElementById("nodeNotebook").value;
-  refMerge.docIsNode = document.getElementById("docIsNode").checked;
-  refMerge.titleIsNode = document.getElementById("titleIsNode").checked;
-  refMerge.otherIsNode = document.getElementById("otherIsNode").checked;
+  if (refMerge.active) {
+    refMerge.docIsNode = document.getElementById("docIsNode").checked;
+    refMerge.titleIsNode = document.getElementById("titleIsNode").checked;
+    refMerge.otherIsNode = document.getElementById("otherIsNode").checked;
+    refMerge.andSymbol = [",", "，", "和", "与", "、"];
+    refMerge.stopSymbol = document.getElementById("stopSymbol").value;
+    refMerge.nodeNotebook = document.getElementById("nodeNotebook").value;
+  } else {
+    refMerge.docIsNode = null;
+    refMerge.titleIsNode = null;
+    refMerge.otherIsNode = null;
+    refMerge.andSymbol = null;
+    refMerge.stopSymbol = null;
+    refMerge.nodeNotebook = null;
+  }
 
   return config;
 

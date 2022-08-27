@@ -80,7 +80,6 @@ class dataGenerate {
     result.label = this.delDivide(result.label);
     return result;
   }
-  edge() {}
   //从文本中提取引用id，siyuanserver中有类似方法
   //但有改动，暂时不合并
   async refListInOrder(markdown) {
@@ -132,6 +131,83 @@ class dataGenerate {
     }
     return blockList;
   }
+
+  async keywordListInOrder(block) {
+    var divideList = [];
+    if (this.config.blockShow.isRefAfterDivide) {
+      divideList.push(this.config.blockShow.refDivide);
+    }
+    //引用合并模式
+    if (this.config.refMerge.active) {
+      divideList = divideList.concat(this.config.refMerge.andSymbol);
+      if (this.config.refMerge.stopSymbol) {
+        divideList.push(this.config.refMerge.stopSymbol);
+      }
+    }
+    var keywordList = await this.siyuanService.keywordListInOrder(
+      block,
+      divideList
+    );
+    var resultList = [];
+    for (let i = 0; i < keywordList.length; i++) {
+      var e = keywordList[i];
+      //标签
+      if (e.type == "tag" && this.config.blockShow.isTag) {
+        const tagGroup = this.config.blockShow.tagGroup;
+        if (tagGroup && e.content.indexOf(tagGroup + "/") != 0) {
+          continue;
+        } else {
+          e.dataType = "关系";
+          resultList.push(e);
+          continue;
+        }
+      }
+      //专用笔记本内引用
+      if (
+        e.type != "tag" &&
+        e.type != "text" &&
+        this.config.blockShow.isRefInBox
+      ) {
+        const refBox = this.config.blockShow.refBox;
+        if (e.box == refBox) {
+          e.dataType = "关系";
+          resultList.push(e);
+          continue;
+        }
+      }
+      //文本及后面的关系
+      if (e.type == "text" && e.markdown && keywordList[i + 1]) {
+        if (
+          //不是紧挨着
+          e.maxIndex != keywordList[i + 1].minIndex ||
+          //或者后一个不是块
+          keywordList[i + 1].type == "tag" ||
+          keywordList[i + 1].type == "text"
+        ) {
+          continue;
+        }
+        let e2 = keywordList[i + 1];
+        i++; //!
+        if (e.markdown == this.config.blockShow.refDivide) {
+          e2.dataType = "关系";
+        } else if (e.markdown == this.config.refMerge.stopSymbol) {
+          e2.dataType = "实体-暂停";
+        } else if (this.config.refMerge.andSymbol.indexOf(e.markdown) != -1) {
+          e2.dataType = "实体-和";
+        }
+        resultList.push(e2);
+        continue;
+      }
+      //最后如果是标识，不处理
+      if (e.type == "text" && !keywordList[i + 1]) {
+        continue;
+      }
+      //相当于默认值
+      e.dataType = "实体";
+      resultList.push(e);
+    }
+    return resultList;
+  }
   //接收两个block列表,将它们转化为list1 to list2的形式
   //并添加到节点和边
   async toEchartsData(list1 = [], list2 = []) {
@@ -147,17 +223,17 @@ class dataGenerate {
       if (!block.content) {
         continue;
       }
-      this.AddNodes(await this.blockNode(block));
+      this.AddNodes(block);
     }
     //添加关系
     for (let i = 0; i < list1.length; i++) {
       let block1 = list1[i];
       for (let j = 0; j < list2.length; j++) {
         let block2 = list2[j];
-        if (block1.id && block2.id) {
+        if (block1.name && block2.name) {
           this.AddEdges({
-            source: block1.id,
-            target: block2.id,
+            source: block1.name,
+            target: block2.name,
           });
         }
       }
@@ -212,7 +288,10 @@ class dataGenerate {
     }
     var parent = await this.siyuanService.sql_FindParentbyBlock(block);
     if (parent) {
-      await this.toEchartsData([parent], [block]);
+      await this.toEchartsData(
+        [await this.blockNode(parent)],
+        [await this.blockNode(block)]
+      );
     }
     return;
   }
@@ -233,7 +312,11 @@ class dataGenerate {
     }
     var children = await this.siyuanService.sql_FindbyParentID(block.id);
     if (children.length > 0) {
-      await this.toEchartsData([block], children);
+      let childrenNodes = [];
+      for (const c of children) {
+        childrenNodes.push(await this.blockNode(c));
+      }
+      await this.toEchartsData([await this.blockNode(block)], childrenNodes);
     }
     return;
   }
@@ -255,11 +338,11 @@ class dataGenerate {
         if (defList[i] == "关系") {
           i++;
         } else {
-          resultList.push(defList[i]);
+          resultList.push(await this.blockNode(defList[i]));
         }
         i++;
       }
-      await this.toEchartsData([block], resultList);
+      await this.toEchartsData([await this.blockNode(block)], resultList);
       return;
     }
   }
@@ -273,29 +356,120 @@ class dataGenerate {
     }
     var backDefList = await this.siyuanService.sql_FindBackDefbyID(block.id);
     if (backDefList.length > 0) {
-      await this.toEchartsData(backDefList, [block]);
+      let backDefNodeList = [];
+      for (const b of backDefList) {
+        backDefNodeList.push(await this.blockNode(b));
+      }
+      await this.toEchartsData(backDefNodeList, [await this.blockNode(block)]);
+      //每个反向引用要再查一下其引用，目的是显示清楚为什么要引用它
+      //这个可以考虑删除
       backDefList.forEach(async (element) => {
         let id = element.id; //注意id变量的作用范围
         let defList = await this.siyuanService.sql_FindDefbyID(id);
         if (defList.length > 0) {
-          await this.toEchartsData([element], defList);
+          let defNodeList = [];
+          for (const d of defList) {
+            defNodeList.push(await this.blockNode(d));
+          }
+          await this.toEchartsData(
+            [await this.blockNode(element)],
+            defNodeList
+          );
         }
       });
     }
     return;
   }
-  //查询引用和反向引用并转化为visData
-  findAndAdd = async function () {
-    if (!this.id) {
+
+  //虚拟节点关系
+  async dataVisual(block) {
+    if (!block) {
       return;
     }
-    var block = await this.siyuanService.sql_FindbyID(this.id);
-    await this.dataParent(block);
-    await this.dataChildren(block);
-    await this.dataRef(block);
-    await this.dataBackRef(block);
-    return [this.nodes, this.edges];
-  };
+    const keywordListInOrder = await this.keywordListInOrder(block);
+    //console.log(keywordListInOrder);
+    for (const e of keywordListInOrder) {
+      console.log(e.dataType + ":::" + e.content);
+    }
+    let preNode;
+    let andList = [];
+    let stopNode; //暂存的上一组组配结果
+    let relaNode = await this.blockNode(block);
+    for (let i = 0; i < keywordListInOrder.length; i++) {
+      const node = keywordListInOrder[i];
+      const blockNode = await this.blockNode(node);
+      //普通实体
+      if (node.dataType == "实体") {
+        if (preNode) {
+          const mergeNode = this.visualNode(preNode, blockNode);
+          await this.toEchartsData([preNode, blockNode], [mergeNode]);
+          preNode = mergeNode;
+        } else {
+          preNode = blockNode;
+        }
+      }
+      //结束上一组-与stopNode组配
+      if (
+        (node.dataType == "实体-和" ||
+          node.dataType == "实体-暂停" ||
+          node.dataType == "关系") &&
+        stopNode &&
+        preNode
+      ) {
+        const mergeNode = this.visualNode(stopNode, preNode);
+        await this.toEchartsData([stopNode, preNode], [mergeNode]);
+        preNode = mergeNode;
+      }
+      //开始下一组
+      if (node.dataType == "实体-和") {
+        if (preNode) {
+          andList.push(preNode);
+        }
+        preNode = blockNode;
+      }
+      if (node.dataType == "实体-暂停") {
+        if (preNode) {
+          stopNode = preNode;
+        }
+        preNode = blockNode;
+      }
+      //关系
+      if (node.dataType == "关系") {
+        andList.push(preNode);
+        preNode = null;
+        let label = "";
+        for (const a of andList) {
+          label += a.label + "/";
+        }
+        relaNode.label = label + relaNode.label;
+        await this.toEchartsData(andList, [relaNode]);
+        andList = [];
+      }
+    }
+    //最后一次链接
+    if (preNode) {
+      andList.push(preNode);
+    }
+    if (andList.length > 0) {
+      await this.toEchartsData([relaNode], andList);
+    }
+  }
+  return;
+
+  //虚拟节点
+  visualNode(blockNode1, blockNode2) {
+    var result = {
+      name: blockNode1.name + "-" + blockNode2.name,
+      label: blockNode1.label + "/" + blockNode2.label,
+      content: "虚拟节点无内容",
+      box: "虚拟节点",
+      doc: "虚拟节点",
+      type: "虚拟节点",
+      dataType: "虚拟节点",
+    };
+    return result;
+  }
+
   //删除最后一个“/”
   delDivide(str) {
     if (!str) {
@@ -307,6 +481,26 @@ class dataGenerate {
       return str;
     }
   }
+  //暴露的函数
+  //最终添加节点和关系
+  findAndAdd = async function () {
+    if (!this.id) {
+      return;
+    }
+    var block = await this.siyuanService.sql_FindbyID(this.id);
+    await this.dataParent(block);
+    await this.dataChildren(block);
+    if (this.config.refMerge.active) {
+      await this.dataVisual(block);
+    } else {
+      await this.dataRef(block);
+    }
+
+    await this.dataBackRef(block);
+    return [this.nodes, this.edges];
+  };
+  //删除节点
+  findAndDel = async function () {};
 }
 
 if (typeof module === "object") {

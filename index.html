@@ -177,9 +177,20 @@
               实体所在文件夹（留空则为全部）
               <select id="nodeNotebook" title="nodeNotebook"></select>
             </label>
-            <div></div>
-            <div></div>
-            <div></div>
+            <label for="stopSymbol">
+              停止组配符
+              <input autocomplete="off" id="stopSymbol" type="text" />
+            </label>
+            <label for="andSymbol">
+              停止组配符（表示并列关系）
+              <input
+                autocomplete="off"
+                id="andSymbol"
+                type="text"
+                value=', ，和 与 、'
+                readonly
+              />
+            </label>
           </div>
         </details>
         <details open>

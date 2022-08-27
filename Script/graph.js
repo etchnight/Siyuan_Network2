@@ -28,7 +28,8 @@ function initGraph() {
           },
         },
         roam: true,
-        tooltip: {
+        edgeSymbol: ['none', 'arrow'],
+        tooltip: {//悬浮显示
           position: "top",
           formatter: (data) => {
             return data.data.content;
