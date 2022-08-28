@@ -8,8 +8,13 @@
 5. 点击`绘制`
 6. 通过图表交互浏览您的笔记
 ### 效果
+<<<<<<< HEAD
 ![输入](https://github.com/etchnight/Siyuan_Network2/tree/master/doc/example1_input.png)
 ![输出](https://github.com/etchnight/Siyuan_Network2/tree/master/doc/example1_output.png)
+=======
+![输入](https://github.com/etchnight/Siyuan_Network2/doc/example1_input.png)
+![输出](https://github.com/etchnight/Siyuan_Network2/doc/example1_output.png)
+>>>>>>> 2d95e9532bec71cb33724e0e6a41cd389e416971
 ## 功能详情
 ### 图表交互
 - [x] 双击展开节点
