@@ -249,11 +249,16 @@ class dataGenerate {
       newdata = [newdata];
     }
     for (let d of newdata) {
-      if (
-        !_.some(this.nodes, (o) => {
-          return o.name == d.name;
-        })
-      ) {
+      let duplicateFlag = false;
+      for (let i = 0; i < this.nodes.length; i++) {
+        let n = this.nodes[i];
+        if (n.name == d.name) {
+          duplicateFlag = true;
+          //以新数据为准
+          this.nodes[i] = d;
+        }
+      }
+      if (!duplicateFlag) {
         this.nodes.push(d);
       }
     }
@@ -402,9 +407,13 @@ class dataGenerate {
       const node = keywordListInOrder[i];
       const blockNode = await this.blockNode(node);
       //因为无分隔符号导致未找到关系时，会默认将最后一个实体作为关系处理
-      if (i == keywordListInOrder.length - 1 && relaFlag == false) {
+      if (
+        i == keywordListInOrder.length - 1 &&
+        relaFlag == false &&
+        node.dataType != "关系"
+      ) {
         node.dataType = "关系";
-        andList.push(blockNode);
+        relaNode.label = blockNode.label;
       }
       //普通实体
       if (node.dataType == "实体") {

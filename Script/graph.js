@@ -4,7 +4,9 @@
 /*图表相关，包括图表交互事件 */
 //初始化图表
 function initGraph() {
-  var myChart = echarts.init(document.getElementById("echartsGraph"));
+  var myChart = echarts.init(document.getElementById("echartsGraph"),{
+    renderer :"svg"
+  });
   /** @type EChartsOption */
   var initOptions = {
     title: {
@@ -34,6 +36,7 @@ function initGraph() {
           },
         },
         roam: true,
+        draggable: true,
         edgeSymbol: ["none", "arrow"],
         tooltip: {
           //悬浮显示
