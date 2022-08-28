@@ -1,5 +1,5 @@
 "use strict";
-/*global config SiyuanConnect _ :true*/
+/*global config SiyuanConnect _ siyuanNetwork2Params:true*/
 
 /*数据生成相关 */
 class dataGenerate {
@@ -13,9 +13,6 @@ class dataGenerate {
   }
   //block节点
   async blockNode(block) {
-    if (!block.content) {
-      return;
-    }
     var result = {
       name: block.id,
       label: "",
@@ -23,6 +20,7 @@ class dataGenerate {
       box: block.box,
       doc: block.root_id,
       type: block.type,
+      layerNum: siyuanNetwork2Params.layerNum,
     };
     var label = {
       name: "",
@@ -236,6 +234,7 @@ class dataGenerate {
           this.AddEdges({
             source: block1.name,
             target: block2.name,
+            layerNum: siyuanNetwork2Params.layerNum,
           });
         }
       }
@@ -254,7 +253,8 @@ class dataGenerate {
         let n = this.nodes[i];
         if (n.name == d.name) {
           duplicateFlag = true;
-          //以新数据为准
+          //以新数据为准,但是layerNum不变
+          d.layerNum = this.nodes[i].layerNum;
           this.nodes[i] = d;
         }
       }
@@ -321,7 +321,9 @@ class dataGenerate {
     if (children.length > 0) {
       let childrenNodes = [];
       for (const c of children) {
-        childrenNodes.push(await this.blockNode(c));
+        if (c.content || c.markdown) {
+          childrenNodes.push(await this.blockNode(c));
+        }
       }
       await this.toEchartsData([await this.blockNode(block)], childrenNodes);
     }
@@ -363,27 +365,13 @@ class dataGenerate {
     }
     var backDefList = await this.siyuanService.sql_FindBackDefbyID(block.id);
     if (backDefList.length > 0) {
-      let backDefNodeList = [];
       for (const b of backDefList) {
-        backDefNodeList.push(await this.blockNode(b));
-      }
-      await this.toEchartsData(backDefNodeList, [await this.blockNode(block)]);
-      //每个反向引用要再查一下其引用，目的是显示清楚为什么要引用它
-      //这个可以考虑删除
-      backDefList.forEach(async (element) => {
-        let id = element.id; //注意id变量的作用范围
-        let defList = await this.siyuanService.sql_FindDefbyID(id);
-        if (defList.length > 0) {
-          let defNodeList = [];
-          for (const d of defList) {
-            defNodeList.push(await this.blockNode(d));
-          }
-          await this.toEchartsData(
-            [await this.blockNode(element)],
-            defNodeList
-          );
+        if (this.config.refMerge.active) {
+          await this.dataVisual(b);
+        } else {
+          await this.dataRef(b);
         }
-      });
+      }
     }
     return;
   }
@@ -395,9 +383,9 @@ class dataGenerate {
     }
     const keywordListInOrder = await this.keywordListInOrder(block);
     //console.log(keywordListInOrder);
-    for (const e of keywordListInOrder) {
+    /*for (const e of keywordListInOrder) {
       console.log(e.dataType + ":::" + e.content);
-    }
+    }*/
     let preNode;
     let andList = [];
     let stopNode; //暂存的上一组组配结果
@@ -488,6 +476,7 @@ class dataGenerate {
       doc: "虚拟节点",
       type: "虚拟节点",
       dataType: "虚拟节点",
+      layerNum: siyuanNetwork2Params.layerNum,
     };
     return result;
   }
@@ -509,6 +498,7 @@ class dataGenerate {
     if (!this.id) {
       return;
     }
+    siyuanNetwork2Params.layerNum++;
     var block = await this.siyuanService.sql_FindbyID(this.id);
     await this.dataParent(block);
     await this.dataChildren(block);
@@ -517,12 +507,49 @@ class dataGenerate {
     } else {
       await this.dataRef(block);
     }
-
     await this.dataBackRef(block);
     return [this.nodes, this.edges];
   };
   //删除节点
-  findAndDel = async function () {};
+  findAndDel = async function () {
+    if (!this.id) {
+      return;
+    }
+    //获取节点,注意，本节点不删除
+    let nodeRemoved = [
+      _.find(this.nodes, (o) => {
+        return o.name == this.id;
+      }),
+    ];
+    do {
+      for (const node of nodeRemoved) {
+        //获取下层边,并删除
+        let edgesRemoved = _.remove(this.edges, (o) => {
+          return (
+            (o.source == node.name || o.target == node.name) &&
+            o.layerNum > node.layerNum
+          );
+        });
+        //获取删除的边连接的下级节点
+        nodeRemoved = _.remove(this.nodes, (o) => {
+          //不在边连接的节点中，不删除
+          if (
+            !_.some(edgesRemoved, (edge) => {
+              return edge.source == o.name || edge.target == o.name;
+            })
+          ) {
+            return false;
+          }
+          //同级和更早的节点不删除
+          if (o.layerNum <= node.layerNum) {
+            return false;
+          }
+          return true;
+        });
+      }
+    } while (nodeRemoved.length > 0); //直到没有可以删除的
+    return [this.nodes, this.edges];
+  };
 }
 
 if (typeof module === "object") {

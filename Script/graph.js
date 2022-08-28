@@ -4,8 +4,8 @@
 /*图表相关，包括图表交互事件 */
 //初始化图表
 function initGraph() {
-  var myChart = echarts.init(document.getElementById("echartsGraph"),{
-    renderer :"svg"
+  var myChart = echarts.init(document.getElementById("echartsGraph"), {
+    renderer: "svg",
   });
   /** @type EChartsOption */
   var initOptions = {
@@ -67,7 +67,7 @@ function initGraph() {
     //右键菜单项
     const menuItems = [
       `<a href=siyuan://blocks/${params.data.name}>定位到块</a>`,
-      `<a href="javascript:void(0)" οnclick="main_del(${params.data.name})">收起节点</a>`,
+      `<a href="javascript:void(0)" onclick="main_del('${params.data.name}')">收起节点</a>`,
     ];
     //关默认
     params.event.event.preventDefault();

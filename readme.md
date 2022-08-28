@@ -8,26 +8,24 @@
 5. 点击`绘制`
 6. 通过图表交互浏览您的笔记
 ### 效果
-<<<<<<< HEAD
-![输入](https://github.com/etchnight/Siyuan_Network2/tree/master/doc/example1_input.png)
-![输出](https://github.com/etchnight/Siyuan_Network2/tree/master/doc/example1_output.png)
-=======
-![输入](https://github.com/etchnight/Siyuan_Network2/doc/example1_input.png)
-![输出](https://github.com/etchnight/Siyuan_Network2/doc/example1_output.png)
->>>>>>> 2d95e9532bec71cb33724e0e6a41cd389e416971
+输入：
+![输入](https://github.com/etchnight/Siyuan_Network2/raw/master/doc/example1_input.png)
+输出：
+![输出](https://github.com/etchnight/Siyuan_Network2/raw/master/doc/example1_output.png)
+
 ## 功能详情
 ### 图表交互
 - [x] 双击展开节点
 - [x] 悬浮在节点上显示块详情
 - [x] 右键菜单
   - [x] 定位到块
-  - [ ] 收起节点
+  - [x] 收起节点
 - [ ] 关系图显示层级限制
 - [ ] 基于文档以及笔记本的布局图，将同一文档/笔记本中块集中在某一区域显示，并有颜色覆盖
 - [ ] 调整力引导图参数（自动），同一文档/笔记本块会减小距离
 - [ ] 调整力引导图参数（手动），主要是节点之间距离
-- [x] ~~实现缩放,平移~~平移缩放ECharts原生支持
-- [x] ~~实现拖拽~~拖拽ECharts原生支持
+- [x] ~~实现缩放,平移~~平移、缩放（ECharts原生支持）
+- [x] ~~实现拖拽~~拖拽（ECharts原生支持）
 ### block的名称展示方式选项
 - [x] 默认：从不显示block内容，但文档块和标题块总是显示
 - [x] 显示块命名（属性中命名字段）

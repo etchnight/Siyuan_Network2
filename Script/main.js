@@ -1,8 +1,9 @@
 "use strict";
-/*global dataGenerate initGraph echarts:true*/
+/*global dataGenerate initGraph echarts siyuanNetwork2Params:true*/
 
 /*主流程，数据与图表通信 */
 async function main() {
+  siyuanNetwork2Params.layerNum = 0;
   var nodes = [];
   var edges = [];
   //只有一个id需要获得，就不从config中获取了
@@ -21,16 +22,15 @@ async function main() {
   });
   return myChart.getOption();
 }
-//增加节点
-async function main_add(id) {
+//修改节点
+async function main_changeData(id, callback) {
   var myChart = echarts.getInstanceByDom(
     document.getElementById("echartsGraph")
   );
   const option = myChart.getOption();
   var nodes = option.series[0].data;
   var edges = option.series[0].links;
-  const dataServer = new dataGenerate(id, nodes, edges);
-  [nodes, edges] = await dataServer.findAndAdd();
+  [nodes, edges] = await callback(id, nodes, edges);
   /** @type EChartsOption */
   myChart.setOption({
     series: [
@@ -42,10 +42,22 @@ async function main_add(id) {
     ],
   });
 }
+//增加节点
+function main_add(id) {
+  main_changeData(id, async (id, nodes, edges) => {
+    const dataServer = new dataGenerate(id, nodes, edges);
+    [nodes, edges] = await dataServer.findAndAdd();
+    return [nodes, edges];
+  });
+}
 //收起节点
-async function main_del(id){
-
+function main_del(id) {
+  main_changeData(id, async (id, nodes, edges) => {
+    const dataServer = new dataGenerate(id, nodes, edges);
+    [nodes, edges] = await dataServer.findAndDel();
+    return [nodes, edges];
+  });
 }
 if (typeof module === "object") {
-  module.exports = { main, main_add };
+  module.exports = { main, main_add, main_del };
 }
