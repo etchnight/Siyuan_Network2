@@ -199,7 +199,7 @@
           <summary role="button" class="secondary">其它</summary>
           <div class="grid">
             <label for="port">
-              端口号
+              端口号(默认6806，若不正确则无法保存和获取配置)
               <input autocomplete="off" id="port" type="text" />
             </label>
             <div></div>
@@ -209,12 +209,12 @@
         <div style="margin-top: 20px">
           <a
             href="javascript:void(0);"
-            οnclick="main()"
+            onclick="loadConfig()"
             role="button"
             class="secondary"
             >还原上次配置</a
           >
-          <a href="javascript:void(0);" οnclick="main()" role="button"
+          <a href="javascript:void(0);" onclick="saveConfig()" role="button"
             >保存配置</a
           >
         </div>

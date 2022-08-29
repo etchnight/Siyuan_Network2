@@ -8,9 +8,12 @@
 5. 点击`绘制`
 6. 通过图表交互浏览您的笔记
 ### 效果
-输入：
+笔记：
+
 ![输入](https://github.com/etchnight/Siyuan_Network2/raw/master/doc/example1_input.png)
-输出：
+
+关系图：
+
 ![输出](https://github.com/etchnight/Siyuan_Network2/raw/master/doc/example1_output.png)
 
 ## 功能详情
@@ -116,7 +119,7 @@
 - [x] 因为无分隔符号导致未找到关系时，会默认将最后一个实体作为关系处理
 - [ ] 智能识别是一个很诱人的方式，但是实现起来不止需要停用词表、分词、词性标注等东西，优化的不好就毫无意义，所以在相当长的时间内，不会增加该特性
 ### 其他
-- [ ] 保存配置
+- [x] 保存和加载配置
 - [ ] 内置主题词组配建议
 - [ ] 内置主题词表
 ## 依赖

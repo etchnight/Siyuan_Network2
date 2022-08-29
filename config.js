@@ -13,7 +13,7 @@ function config() {
   relation.isChildren = document.getElementById("isChildren").checked;
   relation.isRef = document.getElementById("isRef").checked;
   relation.isBackRef = document.getElementById("isBackRef").checked;
-  relation.parentBox = document.getElementById("parentBox").value;
+  relation.parentBox = document.getElementById("parentBox").selectedOptions[0].value;
   config.blockShow = {};
   //block的名称展示方式选项
   var blockShow = config.blockShow;
@@ -65,7 +65,13 @@ function config() {
       return [preConfig, ""];
     }
     const dom = document.getElementById(id);
-    if (!dom.value) {
+    let value;
+    if (dom.nodeName == "SELECT") {
+      value = dom.selectedOptions[0].value;
+    } else {
+      value = dom.value;
+    }
+    if (!value) {
       //alert(`未输入必填项，程序会按照该项未选择执行`)
       return [false, ""];
     }

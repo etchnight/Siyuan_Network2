@@ -522,6 +522,17 @@ class SiyuanConnect {
     );
     return response;
   };
+  //推送消息
+  pushMsg = async function (msg, timeout) {
+    const response = await this.invoke("/api/notification/pushMsg", {
+      msg: msg,
+      timeout: timeout || 7000,
+    });
+    let data = JSON.parse(response);
+    data = data.data;
+    return data.notebooks;
+  };
+
   //根据顺序返回关键词（引用和标签)列表，可以追加关键词列表(字符串列表)
   keywordListInOrder = async function (block, otherList) {
     const id = block.id;
