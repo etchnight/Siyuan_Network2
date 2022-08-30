@@ -30,7 +30,14 @@ async function main_changeData(id, callback) {
   const option = myChart.getOption();
   var nodes = option.series[0].data;
   var edges = option.series[0].links;
-  [nodes, edges] = await callback(id, nodes, edges);
+  //id为列表的话，逐个处理一同设置
+  if (typeof id === typeof []) {
+    for (const o of id) {
+      [nodes, edges] = await callback(o, nodes, edges);
+    }
+  } else {
+    [nodes, edges] = await callback(id, nodes, edges);
+  }
   /** @type EChartsOption */
   myChart.setOption({
     series: [
@@ -41,16 +48,21 @@ async function main_changeData(id, callback) {
       },
     ],
   });
+  //console.log(myChart.getOption())
 }
 //增加节点
 function main_add(id) {
   main_changeData(id, async (id, nodes, edges) => {
+    //虚拟节点不处理
+    if (id.length > 22) {
+      return [nodes, edges];
+    }
     const dataServer = new dataGenerate(id, nodes, edges);
     [nodes, edges] = await dataServer.findAndAdd();
     return [nodes, edges];
   });
 }
-//收起节点
+//收起节点(删除)
 function main_del(id) {
   main_changeData(id, async (id, nodes, edges) => {
     const dataServer = new dataGenerate(id, nodes, edges);
@@ -72,7 +84,6 @@ async function saveConfig() {
 }
 //加载配置
 async function loadConfig() {
-  
   if (!window.frameElement) {
     return;
   }
@@ -116,7 +127,6 @@ async function loadConfig() {
   document.getElementById("stopSymbol").value = refMerge.stopSymbol;
   select("nodeNotebook", refMerge.nodeNotebook);
 
-
   function select(id, target) {
     if (!target) {
       return;
@@ -133,5 +143,11 @@ async function loadConfig() {
 }
 
 if (typeof module === "object") {
-  module.exports = { main, main_add, main_del, saveConfig, loadConfig };
+  module.exports = {
+    main,
+    main_add,
+    main_del,
+    saveConfig,
+    loadConfig,
+  };
 }

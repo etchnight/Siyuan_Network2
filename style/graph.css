@@ -1,0 +1,22 @@
+#echartsGraph,
+html,
+body {
+  width: 100%;
+}
+#echartsContainer {
+  position: relative;
+  height: 0;
+  width: 100%;
+  padding: 0;
+  padding-bottom: 75%;
+  border-width: 2px;
+  border-style: solid;
+  border-color: antiquewhite;
+}
+#echartsGraph {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}

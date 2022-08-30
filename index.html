@@ -15,31 +15,7 @@
     <script src="./Script/test.js"></script>
     <link rel="stylesheet" type="text/css" href="./style/pico.min.css" />
     <link rel="stylesheet" type="text/css" href="./style/menu.css" />
-    <style>
-      #echartsGraph,
-      html,
-      body {
-        width: 100%;
-      }
-      #echartsContainer {
-        position: relative;
-        width: 95%;
-        left: 2.5%;
-        height: 0;
-        padding: 0;
-        padding-bottom: 75%;
-        border-width: 2px;
-        border-style: solid;
-        border-color: antiquewhite;
-      }
-      #echartsGraph {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="./style/graph.css" />
   </head>
 
   <body>
@@ -222,11 +198,28 @@
       <div style="margin-top: 20px" class="grid">
         <button onclick="main()" type="button">绘制</button>
       </div>
+
+      <div id="echartsContainer">
+        <div id="echartsGraph"></div>
+        <div id="echartsMenu" class="right-menu"></div>
+        <div id="echartGlobeMenu" class="right-menu">
+          <div class="menu-item">
+            <sapn>显示层级限制</sapn>
+            <input
+              id="layerMax"
+              type="range"
+              min="1"
+              max="11"
+              step="1"
+              class="rangeBar"
+              value="11"
+            />
+            <sapn id="layerMaxShow">11</sapn>
+          </div>
+        </div>
+      </div>
     </main>
-    <div id="echartsContainer">
-      <div id="echartsGraph"></div>
-      <div id="echartsMenu" class="right-menu"></div>
-    </div>
+
     <!-- 建立和储存全局变量-->
     <script>
       var siyuanNetwork2Params = {

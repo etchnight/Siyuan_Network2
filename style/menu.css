@@ -29,3 +29,20 @@
   height: 100%;
   /*font-weight: bold;*/
 }
+#echartGlobeMenu {
+  width: 25%;
+  position: absolute;
+  right: 10px;
+  top: 50px;
+  font-size: 15px;
+  align-items: center;
+  justify-content: center;
+}
+#echartGlobeMenu > .menu-item {
+  display: inline-flex;
+  justify-content: space-between;
+  width: 90%;
+}
+#echartGlobeMenu .menu-item .rangeBar {
+  width: 50%;
+}

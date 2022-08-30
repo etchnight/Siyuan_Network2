@@ -441,7 +441,9 @@ class dataGenerate {
       //关系
       if (node.dataType == "关系") {
         relaFlag = true;
-        andList.push(preNode); //这样及时andList为空也可以运行
+        if (preNode) {
+          andList.push(preNode); //这样及时andList为空也可以运行
+        }
         preNode = null;
         let label = "";
         for (const a of andList) {
@@ -493,10 +495,14 @@ class dataGenerate {
     }
   }
   //暴露的函数
-  //最终添加节点和关系
+  //添加节点和关系
   findAndAdd = async function () {
     if (!this.id) {
       return;
+    }
+    //虚拟节点不处理
+    if (this.id.length > 22) {
+      return [this.nodes, this.edges];
     }
     siyuanNetwork2Params.layerNum++;
     var block = await this.siyuanService.sql_FindbyID(this.id);
@@ -510,7 +516,7 @@ class dataGenerate {
     await this.dataBackRef(block);
     return [this.nodes, this.edges];
   };
-  //删除节点
+  //删除节点,会删除节点及其后代
   findAndDel = async function () {
     if (!this.id) {
       return;
