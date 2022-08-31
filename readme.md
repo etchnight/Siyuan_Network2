@@ -48,6 +48,7 @@
 - [x] 引用
 - [x] 反向引用
 ### 引用合并模式
+关于[引用合并模式的思想](https://github.com/etchnight/Siyuan_Network2/blob/master/doc/引用增强模式的主要思想.md)
 特点：
 - [x] 该模式会对引用进行组配，自动合成新节点、关系
 - [x] 块命名方式有所更改，会在上述基础上加上关系前的实体引用，具体见下方例子
@@ -120,8 +121,8 @@
 - [ ] 智能识别是一个很诱人的方式，但是实现起来不止需要停用词表、分词、词性标注等东西，优化的不好就毫无意义，所以在相当长的时间内，不会增加该特性
 ### 其他
 - [x] 保存和加载配置
-- [ ] 内置主题词组配建议
-- [ ] 内置主题词表
+- [x] 内置主题词组配建议，详见[叙词语言的词汇控制](https://github.com/etchnight/Siyuan_Network2/blob/master/doc/叙词语言的词汇控制.md)
+- [x] ~~内置主题词表~~近期不准备引入
 ## 依赖
 - [Apache ECharts-一个基于 JavaScript 的开源可视化图表库](https://echarts.apache.org/zh/index.html)
 - [Pico.css-Minimal CSS Framework for semantic HTML](https://github.com/picocss/pico)
