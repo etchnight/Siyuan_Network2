@@ -559,16 +559,19 @@ class SiyuanConnect {
     let preIndex = 0;
     let preMaxIndex = 0;
     while (markdown) {
+      let item = {};
       let minIndex = markdown.length;
-      let item = "";
       for (const e of keywordList) {
         let index = markdown.indexOf(e.markdown);
         if (index < minIndex && index >= 0) {
           minIndex = index;
-          item = e;
+          //拷贝而不能赋值
+          for (const key in e) {
+            item[key] = e[key];
+          }
         }
       }
-      if (!item) {
+      if (!item.markdown) {
         break;
       }
       //截取

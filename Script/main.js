@@ -77,7 +77,7 @@ async function saveConfig() {
   }
   const parentDom = window.frameElement.parentElement.parentElement;
   const id = parentDom.getAttribute("data-node-id");
-  //const id = "20220829081111-thsfhda";
+  //const id = "20220831140338-24p00b1";
   const server = new SiyuanConnect(config().port);
   await server.setBlockAttr(id, "memo", JSON.stringify(config()));
   server.pushMsg("保存完成");
@@ -89,7 +89,7 @@ async function loadConfig() {
   }
   const parentDom = window.frameElement.parentElement.parentElement;
   const id = parentDom.getAttribute("data-node-id");
-  //const id = "20220829081111-thsfhda";
+  //const id = "20220831140338-24p00b1";
   const server = new SiyuanConnect(config().port);
   const data = await server.getBlockAttrs(id);
   let str = data.memo.replace(/&quot;/g, '"');

@@ -148,6 +148,9 @@ class dataGenerate {
       block,
       divideList
     );
+    /*for(const a of keywordList){
+      console.log(`${a.markdown}从${a.minIndex}到${a.maxIndex}`)
+    }*/
     var resultList = [];
     for (let i = 0; i < keywordList.length; i++) {
       var e = keywordList[i];
@@ -382,10 +385,6 @@ class dataGenerate {
       return;
     }
     const keywordListInOrder = await this.keywordListInOrder(block);
-    //console.log(keywordListInOrder);
-    /*for (const e of keywordListInOrder) {
-      console.log(e.dataType + ":::" + e.content);
-    }*/
     let preNode;
     let andList = [];
     let stopNode; //暂存的上一组组配结果
