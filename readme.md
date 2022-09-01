@@ -48,7 +48,8 @@
 - [x] 引用
 - [x] 反向引用
 ### 引用合并模式
-关于[引用合并模式的思想](https://github.com/etchnight/Siyuan_Network2/blob/master/doc/引用增强模式的主要思想.md)
+[引用合并模式的思想](https://github.com/etchnight/Siyuan_Network2/blob/master/doc/引用增强模式的主要思想.md)
+
 特点：
 - [x] 该模式会对引用进行组配，自动合成新节点、关系
 - [x] 块命名方式有所更改，会在上述基础上加上关系前的实体引用，具体见下方例子

@@ -31,18 +31,20 @@
 }
 #echartGlobeMenu {
   width: 25%;
+  min-width: 200px;
   position: absolute;
   right: 10px;
   top: 50px;
-  font-size: 15px;
+  font-size: 5px;
   align-items: center;
   justify-content: center;
 }
 #echartGlobeMenu > .menu-item {
-  display: inline-flex;
+  display: flex;
   justify-content: space-between;
   width: 90%;
+  height:20px;
 }
-#echartGlobeMenu .menu-item .rangeBar {
+#echartGlobeMenu .menu-item input[type="range"] {
   width: 50%;
 }
