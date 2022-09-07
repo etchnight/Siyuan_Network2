@@ -16,7 +16,9 @@ function initGraph() {
     tooltip: {
       show: true,
       trigger: "item",
-      //alwaysShowContent: true,
+      alwaysShowContent: true,
+      confine: true,
+      enterable: true,
     },
     toolbox: {
       show: true,
@@ -68,10 +70,11 @@ function initGraph() {
               return;
             }
             //设置换行总是不行，直接用css实现
-            return `<p class="echartsTooltip">${text}</p>`;
+            return `<p id="echartsTooltip" class="echartsTooltip">${text}</p>`;
           },
           textStyle: {},
           extraCssText: "",
+          
         },
       },
     ],
@@ -121,6 +124,8 @@ function initGraph() {
       var menu = document.getElementById("echartsMenu");
       menu.style.display = "none";
       menu = document.getElementById("echartGlobeMenu");
+      menu.style.display = "none";
+      menu = document.getElementById("echartsTooltip");
       menu.style.display = "none";
     }
   });

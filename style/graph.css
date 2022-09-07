@@ -24,9 +24,10 @@ body {
 .echartsTooltip {
   word-wrap: break-word;
   white-space: pre-wrap;
-  max-width: 200px;
+  max-width: 400px;
   font-size: 15px;
   color: #000;
   margin-bottom: 0px;
+  overflow-y: scroll;
 }
 

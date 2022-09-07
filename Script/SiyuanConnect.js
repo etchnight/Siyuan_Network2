@@ -566,6 +566,7 @@ class SiyuanConnect {
         if (index < minIndex && index >= 0) {
           minIndex = index;
           //拷贝而不能赋值
+          item={}
           for (const key in e) {
             item[key] = e[key];
           }

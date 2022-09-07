@@ -152,6 +152,7 @@ class dataGenerate {
       console.log(`${a.markdown}从${a.minIndex}到${a.maxIndex}`)
     }*/
     var resultList = [];
+    var nextDataType;
     for (let i = 0; i < keywordList.length; i++) {
       var e = keywordList[i];
       //标签
@@ -189,21 +190,23 @@ class dataGenerate {
         ) {
           continue;
         }
-        let e2 = keywordList[i + 1];
-        i++; //!
         if (e.markdown == this.config.blockShow.refDivide) {
-          e2.dataType = "关系";
+          nextDataType = "关系";
         } else if (e.markdown == this.config.refMerge.stopSymbol) {
-          e2.dataType = "实体-暂停";
+          nextDataType = "实体-暂停";
         } else if (this.config.refMerge.andSymbol.indexOf(e.markdown) != -1) {
-          e2.dataType = "实体-和";
+          nextDataType = "实体-和";
         }
-        resultList.push(e2);
         continue;
       }
       //最后如果是标识，不处理
       if (e.type == "text" && !keywordList[i + 1]) {
         continue;
+      }
+      //前一个标记的类型
+      if (nextDataType) {
+        e.type = nextDataType;
+        nextDataType = "";
       }
       //相当于默认值
       e.dataType = "实体";
