@@ -205,8 +205,10 @@ class dataGenerate {
       }
       //前一个标记的类型
       if (nextDataType) {
-        e.type = nextDataType;
+        e.dataType = nextDataType;
+        resultList.push(e);
         nextDataType = "";
+        continue;
       }
       //相当于默认值
       e.dataType = "实体";
@@ -467,8 +469,8 @@ class dataGenerate {
     if (andList.length > 0) {
       await this.toEchartsData([relaNode], andList);
     }
+    return;
   }
-  return;
 
   //虚拟节点
   visualNode(blockNode1, blockNode2) {
