@@ -16,7 +16,7 @@ function initGraph() {
     tooltip: {
       show: true,
       trigger: "item",
-      alwaysShowContent: true,
+      //alwaysShowContent: true,
     },
     toolbox: {
       show: true,
@@ -64,6 +64,9 @@ function initGraph() {
           position: "top",
           formatter: (data) => {
             let text = data.data.content;
+            if (!text) {
+              return;
+            }
             //设置换行总是不行，直接用css实现
             return `<p class="echartsTooltip">${text}</p>`;
           },
