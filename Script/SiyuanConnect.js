@@ -13,7 +13,7 @@
   "data": {}
 }
 */
-class SiyuanConnect {
+export class SiyuanConnect {
   constructor(port) {
     this.port = port || "6806";
     this.SiyuanRootAddress = "http://127.0.0.1:" + this.port;

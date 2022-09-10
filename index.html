@@ -4,226 +4,52 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Network2</title>
-    <script src="./Script/SiyuanConnect.js"></script>
-    <script src="./Script/main.js"></script>
-    <script src="./Script/event.js"></script>
-    <script src="./Script/graph.js"></script>
-    <script src="./Script/dataGenerate.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "vue": "./lib/vue.esm-browser.js"
+        }
+      }
+    </script>
     <script src="./lib/echarts.min.js"></script>
     <script src="./lib/lodash.min.js"></script>
-    <script src="./config.js"></script>
-    <script src="./Script/test.js"></script>
+
+    <script src="./Script/SiyuanConnect.js" type="module"></script>
+    <script src="./Script/appConfig.js" type="module"></script>
+    <script src="./Script/lsNotebooks.js" type="module"></script>
+    <script src="./Script/main.js" type="module"></script>
+    <script src="./Script/echartsGraph.js" type="module"></script>
+
+    <script src="./Script/test.js" type="module"></script>
+
     <link rel="stylesheet" type="text/css" href="./style/pico.min.css" />
     <link rel="stylesheet" type="text/css" href="./style/menu.css" />
     <link rel="stylesheet" type="text/css" href="./style/graph.css" />
   </head>
 
   <body>
-    <main class="container">
-      <div>
-        <label for="nodeId">初始块ID，即绘图开始节点</label>
-        <input autocomplete="off" id="nodeId" type="text" />
-      </div>
-      <details>
-        <summary role="button">配置选项</summary>
-        <details open>
-          <summary role="button" class="secondary">关系建立选项</summary>
-          <div class="grid">
-            <label for="isParent">
-              <input
-                type="checkbox"
-                checked="checked"
-                id="isParent"
-                role="switch"
-              />
-              是否显示父节点
-            </label>
-            <label for="isChildren">
-              <input
-                type="checkbox"
-                checked="checked"
-                id="isChildren"
-                role="switch"
-              />
-              是否显示子节点
-            </label>
-            <p>如需要父子节点仅限特定笔记本，请选择→</p>
-            <label for="isChildren">
-              <select id="parentBox" title="parentBox"></select>
-            </label>
+    <div id="app">
+      <main class="container">
+        <app-config @send-config="(msg) => config = msg"></app-config>
+        <echarts-graph :config="config"></echarts-graph>
+        <div id="echartsMenu" class="right-menu"></div>
+        <div id="echartGlobeMenu" class="right-menu">
+          <div class="menu-item">
+            <span>显示层级限制</span>
+            <input
+              id="layerMax"
+              type="range"
+              min="1"
+              max="11"
+              step="1"
+              class="rangeBar"
+              value="11"
+            />
+            <span id="layerMaxShow">11</span>
           </div>
-          <div class="grid">
-            <label for="isRef">
-              <input
-                type="checkbox"
-                checked="checked"
-                id="isRef"
-                role="switch"
-              />
-              是否显示引用
-            </label>
-            <label for="isBackRef">
-              <input
-                type="checkbox"
-                checked="checked"
-                id="isBackRef"
-                role="switch"
-              />
-              是否显示反向引用
-            </label>
-            <div></div>
-            <div></div>
-          </div>
-        </details>
-        <details open>
-          <summary role="button" class="secondary">
-            block的名称展示方式选项
-          </summary>
-          <div class="grid">
-            <label for="isName">
-              <input type="checkbox" id="isName" role="switch" />
-              块命名
-            </label>
-            <label for="isTag">
-              <input type="checkbox" id="isTag" role="switch" />
-              标签
-            </label>
-            <p>如需仅限特定分组标签，请输入标签所在分组→</p>
-            <label for="tagGroup">
-              <input
-                autocomplete="off"
-                id="tagGroup"
-                type="text"
-                title="标签所在分组"
-              />
-            </label>
-          </div>
-          <div class="grid">
-            <label for="isRefInBox" style="margin-top: 40px">
-              <input type="checkbox" id="isRefInBox" role="switch" />
-              特定笔记本内引用
-            </label>
-            <label for="refBox">
-              所在笔记本
-              <select id="refBox" title="parentBox"></select>
-            </label>
-            <label for="isRefAfterDivide" style="margin-top: 40px">
-              <input type="checkbox" id="isRefAfterDivide" role="switch" />
-              特定分隔后引用
-            </label>
-            <label for="refDivide">
-              分隔符号
-              <input autocomplete="off" id="refDivide" type="text" />
-            </label>
-          </div>
-          <div>
-            <label for="isShowByPriority">
-              开启项全部显示(不推荐)
-              <input
-                type="checkbox"
-                id="isShowByPriority"
-                role="switch"
-                checked
-              />
-              开启项按优先级显示，优先级顺序：块命名->文档块和标题块的内容->标签->特定符号后引用->特定笔记本引用
-            </label>
-          </div>
-        </details>
-        <details open>
-          <summary role="button" class="secondary">引用增强模式</summary>
-          <div class="grid">
-            <label for="refMergeActive">
-              <input type="checkbox" id="refMergeActive" role="switch" />
-              是否开启
-            </label>
-            <p>以下块类型视为实体：</p>
-            <label for="docIsNode">
-              <input type="checkbox" id="docIsNode" />
-              文档块
-            </label>
-            <label for="titleIsNode">
-              <input type="checkbox" id="titleIsNode" />
-              标题块
-            </label>
-            <label for="otherIsNode">
-              <input type="checkbox" id="otherIsNode" />
-              其他块
-            </label>
-          </div>
-          <div class="grid">
-            <label for="nodeNotebook">
-              实体所在文件夹（留空则为全部）
-              <select id="nodeNotebook" title="nodeNotebook"></select>
-            </label>
-            <label for="stopSymbol">
-              暂停组配符
-              <input autocomplete="off" id="stopSymbol" type="text" />
-            </label>
-            <label for="andSymbol">
-              停止组配符（表示并列关系）
-              <input
-                autocomplete="off"
-                id="andSymbol"
-                type="text"
-                value=", ，和 与 、"
-                readonly
-              />
-            </label>
-          </div>
-        </details>
-        <details open>
-          <summary role="button" class="secondary">其它</summary>
-          <div class="grid">
-            <label for="port">
-              端口号(默认6806，若不正确则无法保存和获取配置)
-              <input autocomplete="off" id="port" type="text" />
-            </label>
-            <div></div>
-            <div></div>
-          </div>
-        </details>
-        <div style="margin-top: 20px">
-          <a
-            href="javascript:void(0);"
-            onclick="loadConfig()"
-            role="button"
-            class="secondary"
-            >还原上次配置</a
-          >
-          <a href="javascript:void(0);" onclick="saveConfig()" role="button"
-            >保存配置</a
-          >
         </div>
-      </details>
-      <div style="margin-top: 20px" class="grid">
-        <button onclick="main()" type="button">绘制</button>
-      </div>
-    </main>
-    <div id="echartsContainer">
-      <div id="echartsGraph"></div>
-      <div id="echartsMenu" class="right-menu"></div>
-      <div id="echartGlobeMenu" class="right-menu">
-        <div class="menu-item">
-          <sapn>显示层级限制</sapn>
-          <input
-            id="layerMax"
-            type="range"
-            min="1"
-            max="11"
-            step="1"
-            class="rangeBar"
-            value="11"
-          />
-          <sapn id="layerMaxShow">11</sapn>
-        </div>
-      </div>
+      </main>
     </div>
-
-    <!-- 建立和储存全局变量-->
-    <script>
-      var siyuanNetwork2Params = {
-        layerNum: 0,
-      };
-    </script>
+    
   </body>
 </html>
