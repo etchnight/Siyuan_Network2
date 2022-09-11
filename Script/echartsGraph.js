@@ -1,5 +1,5 @@
 "use strict";
-/*global echarts _:true*/
+/*global echarts _ :true*/
 /*图表相关，包括图表交互事件 */
 import { SiyuanConnect } from "./SiyuanConnect.js";
 
@@ -12,9 +12,54 @@ export default {
       myChart: null,
       siyuanService: new SiyuanConnect(),
       layerNum: 0,
+      layerMax: 11,
     };
   },
-  watch: {},
+  watch: {
+    //根据层级显示
+    layerMax(layerMax_new, layerMax_old) {
+      if (layerMax_new == 11) {
+        return;
+      }
+      if (layerMax_new == layerMax_old) {
+        return;
+      }
+      const layerNumForDel = this.layerNum - layerMax_new;
+      if (layerNumForDel <= 0) {
+        return;
+      }
+      for (let node of this.nodes) {
+        if (!node.itemStyle) {
+          node.itemStyle = {};
+        }
+        if (node.layerNum <= layerNumForDel) {
+          node.itemStyle.opacity = 0.25;
+        } else {
+          node.itemStyle.opacity = 1;
+        }
+      }
+      for (let edge of this.edges) {
+        if (!edge.lineStyle) {
+          edge.lineStyle = {};
+        }
+        if (edge.layerNum <= layerNumForDel) {
+          edge.lineStyle.opacity = 0.25;
+        } else {
+          edge.lineStyle.opacity = 1;
+        }
+      }
+      this.update();
+    },
+  },
+  computed: {
+    layerMaxForShow() {
+      if (this.layerMax == 11) {
+        return "Max";
+      } else {
+        return this.layerMax;
+      }
+    },
+  },
   methods: {
     //更新显示
     update() {
@@ -29,6 +74,7 @@ export default {
       });
       //强制刷新
       this.$forceUpdate();
+      //console.log(this.myChart.getOption());
     },
     //block节点
     async blockNode(block) {
@@ -658,7 +704,7 @@ export default {
     window.onresize = function () {
       myChart.resize();
     };
-    //双击展开节点
+    /*双击展开节点->移至右键菜单
     myChart.on("dblclick", function (params) {
       if (params.dataType != "node") {
         return;
@@ -669,50 +715,63 @@ export default {
         return;
       }
       //this.findAndAdd(id);
-    });
+    });*/
     //右键菜单
     myChart.on("contextmenu", function (params) {
-      //右键菜单项
-      const menuItems = [
-        `<a href=siyuan://blocks/${params.data.name}>定位到块</a>`,
-        `<a href="javascript:void(0)" onclick="main_del('${params.data.name}')">收起节点</a>`,
-      ];
       //关默认
       params.event.event.preventDefault();
-      //做菜单
+      //显示菜单
       var menu = document.getElementById("echartsMenu");
       menu.style.position = "absolute";
       menu.style.left = params.event.offsetX + "px";
       menu.style.top = params.event.offsetY + "px";
       menu.style.display = "block";
-      var tempHTML = ``;
-      for (const a of menuItems) {
-        tempHTML += `<div class="menu-item">
-                    ${a}
-                </div>`;
-      }
-      menu.innerHTML = tempHTML;
+      //传参
+      document.getElementById("echartsMenuHref").href =
+        "siyuan://blocks/" + params.name;
+      menu.paramsId = params.name;
     });
     //移除右键菜单
     myChart.getZr().on("click", function (event) {
       // 没有 target 意味着鼠标/指针不在任何一个图形元素上，它是从“空白处”触发的。
       if (!event.target) {
-        var menu = document.getElementById("echartsMenu");
-        menu.style.display = "none";
-        menu = document.getElementById("echartGlobeMenu");
-        menu.style.display = "none";
-        menu = document.getElementById("echartsTooltip");
-        menu.style.display = "none";
+        var idList = ["echartsMenu", "echartsMenu", "echartsTooltip"];
+        for (const id of idList) {
+          let menu = document.getElementById(id);
+          if (menu) {
+            menu.style.display = "none";
+          }
+        }
       }
     });
     this.myChart = myChart;
   },
   template: /*html */ `
   <div style="margin-top: 20px" class="grid">
-        <button @click="findAndAdd(this.config.nodeId)" type="button">绘制</button>
-    </div>
+    <button @click="findAndAdd(this.config.nodeId)" type="button">绘制</button>
+  </div>
   <div id="echartsContainer">
     <div ref="echartsGraph" id="echartsGraph"></div>
+    <div id="echartsMenu" class="right-menu" ref="echartsMenu">
+        <a href="javascript:void(0)" @click="findAndAdd(this.$refs.echartsMenu.paramsId)">展开节点</a>
+        <a href="" id="echartsMenuHref">定位到块</a>
+        <a href="javascript:void(0)" @click="findAndDel(this.$refs.echartsMenu.paramsId)">收起节点</a>
+    </div>
+    <div id="echartGlobeMenu" class="right-menu">
+      <div class="menu-item">
+        <span>显示层级限制</span>
+        <input
+          id="layerMax"
+          type="range"
+          min="1"
+          max="11"
+          step="1"
+          class="rangeBar"
+          v-model="layerMax"
+        />
+        <span id="layerMaxShow">{{layerMaxForShow}}</span>
+      </div>
+    </div>
   </div>
   `,
 };

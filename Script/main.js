@@ -2,6 +2,7 @@
 import { createApp } from "vue";
 import appConfig from "./appConfig.js";
 import echartsGraph from "./echartsGraph.js";
+
 /*主流程，设置与图表通信 */
 
 const app = createApp({
@@ -10,11 +11,9 @@ const app = createApp({
     echartsGraph,
   },
   data() {
-    return { config: ""};
+    return { config: "" };
   },
-  methods: {
-    
-  }
+  methods: {},
 });
 
 document.addEventListener("DOMContentLoaded", () => {

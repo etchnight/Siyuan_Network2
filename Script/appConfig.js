@@ -7,7 +7,7 @@ export default {
   data() {
     return {
       port: "6806",
-      nodeId: "20220818212701-7ev7sil",
+      nodeId: "",
       relation: {
         isParent: true,
         isChildren: true,

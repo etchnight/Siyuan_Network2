@@ -11,22 +11,19 @@
   box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24);
   color: #333;
 }
-.right-menu .menu-item {
-  height: 24px;
+.right-menu a:hover,.right-menu a:active {
+  font-weight: bold;
+  background-color: #ccc;
+}
+.right-menu a {
   line-height: 24px;
   cursor: pointer;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-}
-.right-menu .menu-item:hover {
-  background-color: #ddd;
-}
-.right-menu .menu-item a {
   padding: 0 0 0 7px;
   text-decoration: none;
   display: block;
-  height: 100%;
   /*font-weight: bold;*/
 }
 #echartGlobeMenu {

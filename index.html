@@ -19,6 +19,7 @@
     <script src="./Script/lsNotebooks.js" type="module"></script>
     <script src="./Script/main.js" type="module"></script>
     <script src="./Script/echartsGraph.js" type="module"></script>
+    
 
     <script src="./Script/test.js" type="module"></script>
 
@@ -32,24 +33,7 @@
       <main class="container">
         <app-config @send-config="(msg) => config = msg"></app-config>
         <echarts-graph :config="config"></echarts-graph>
-        <div id="echartsMenu" class="right-menu"></div>
-        <div id="echartGlobeMenu" class="right-menu">
-          <div class="menu-item">
-            <span>显示层级限制</span>
-            <input
-              id="layerMax"
-              type="range"
-              min="1"
-              max="11"
-              step="1"
-              class="rangeBar"
-              value="11"
-            />
-            <span id="layerMaxShow">11</span>
-          </div>
-        </div>
       </main>
     </div>
-    
   </body>
 </html>
