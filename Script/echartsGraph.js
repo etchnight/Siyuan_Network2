@@ -86,6 +86,7 @@ export default {
         doc: block.root_id,
         type: block.type,
         layerNum: this.layerNum,
+        category: 0,
       };
       var label = {
         name: "",
@@ -560,6 +561,12 @@ export default {
       }
     },
     //暴露的函数
+    //重置
+    reset(id){
+      this.nodes=[]
+      this.edges=[]
+      this.findAndAdd(id)
+    },
     //添加节点和关系
     async findAndAdd(id) {
       if (!id) {
@@ -695,6 +702,14 @@ export default {
             textStyle: {},
             extraCssText: "",
           },
+          categories: [
+            {
+              name: "一般节点",
+              itemStyle: {
+                color: "#daddd5",
+              },
+            },
+          ],
         },
       ],
     };
@@ -748,7 +763,7 @@ export default {
   },
   template: /*html */ `
   <div style="margin-top: 20px" class="grid">
-    <button @click="findAndAdd(this.config.nodeId)" type="button">绘制</button>
+    <button @click="reset(this.config.nodeId)" type="button">绘制</button>
   </div>
   <div id="echartsContainer">
     <div ref="echartsGraph" id="echartsGraph"></div>

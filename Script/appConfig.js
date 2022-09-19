@@ -1,4 +1,5 @@
 import lsNotebooks from "./lsNotebooks.js";
+import { SiyuanConnect } from "./SiyuanConnect.js";
 
 export default {
   components: {
@@ -8,12 +9,14 @@ export default {
     return {
       port: "6806",
       nodeId: "",
+      widgetsId: "",
       relation: {
         isParent: true,
         isChildren: true,
         isRef: true,
         isBackRef: true,
         parentBox: "",
+        ignoreBlock: true,
       },
       blockShow: {
         isName: false,
@@ -36,7 +39,34 @@ export default {
       },
     };
   },
-  methods: {},
+  methods: {
+    async getConfig() {
+      const server = new SiyuanConnect(this.port);
+      const data = await server.getBlockAttrs(this.widgetsId);
+      let text = data.memo.replace(/&quot;/g, '"');
+      const config = JSON.parse(text);
+      this.port = config.port;
+      this.nodeId = config.nodeId;
+      this.relation = config.relation;
+      this.blockShow = config.blockShow;
+      this.refMerge = config.refMerge;
+    },
+    async saveConfig() {
+      const server = new SiyuanConnect(this.port);
+      await server.setBlockAttr(
+        this.widgetsId,
+        "memo",
+        JSON.stringify({
+          port: this.port,
+          nodeId: this.nodeId,
+          relation: this.relation,
+          blockShow: this.blockShow,
+          refMerge: this.refMerge,
+        })
+      );
+      server.pushMsg("保存完成");
+    },
+  },
   emits: ["sendConfig"],
   updated() {
     this.$emit("sendConfig", {
@@ -45,7 +75,7 @@ export default {
       relation: this.relation,
       blockShow: this.blockShow,
       refMerge: this.refMerge,
-    })
+    });
   },
   created() {
     this.$emit("sendConfig", {
@@ -54,7 +84,15 @@ export default {
       relation: this.relation,
       blockShow: this.blockShow,
       refMerge: this.refMerge,
-    })
+    });
+    try {
+      this.widgetsId =
+        window.frameElement.parentElement.parentElement.getAttribute(
+          "data-node-id"
+        );
+    } catch {
+      this.widgetsId = "20220919153157-1yxiize";
+    }
   },
   template: /*html*/ `
   <div>
@@ -276,14 +314,16 @@ export default {
       </div>
     </details>
     <div style="margin-top: 20px">
+      <label for="widgetsId">挂件块Id</label>
+      <input autocomplete="off" id="widgetsId" type="text" v-model="widgetsId" readonly/>
       <a
         href="javascript:void(0);"
-        onclick="loadConfig()"
+        @click="getConfig()"
         role="button"
         class="secondary"
         >还原上次配置</a
       >
-      <a href="javascript:void(0);" onclick="saveConfig()" role="button"
+      <a href="javascript:void(0);" @click="saveConfig()" role="button"
         >保存配置</a
       >
     </div>
