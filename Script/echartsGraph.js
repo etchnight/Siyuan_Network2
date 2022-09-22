@@ -364,6 +364,10 @@ export default {
       if (this.config.parentBox && this.config.parentBox != block.box) {
         return;
       }
+      //忽略实体所在文件夹
+      if (block.box == this.config.refMerge.nodeNotebook && this.config.refMerge.active) {
+        return;
+      }
       var parent = await this.siyuanService.sql_FindParentbyBlock(block);
       if (parent) {
         await this.toEchartsData(
@@ -386,6 +390,10 @@ export default {
         this.config.relation.parentBox &&
         this.config.relation.parentBox != block.box
       ) {
+        return;
+      }
+      //忽略实体所在文件夹
+      if (block.box == this.config.refMerge.nodeNotebook && this.config.refMerge.active) {
         return;
       }
       var children = await this.siyuanService.sql_FindbyParentID(block.id);
@@ -562,10 +570,10 @@ export default {
     },
     //暴露的函数
     //重置
-    reset(id){
-      this.nodes=[]
-      this.edges=[]
-      this.findAndAdd(id)
+    reset(id) {
+      this.nodes = [];
+      this.edges = [];
+      this.findAndAdd(id);
     },
     //添加节点和关系
     async findAndAdd(id) {
@@ -702,14 +710,14 @@ export default {
             textStyle: {},
             extraCssText: "",
           },
-          categories: [
+          /*categories: [
             {
               name: "一般节点",
               itemStyle: {
                 color: "#daddd5",
               },
             },
-          ],
+          ],*/
         },
       ],
     };
