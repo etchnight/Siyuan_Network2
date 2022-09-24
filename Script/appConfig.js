@@ -94,6 +94,13 @@ export default {
       this.widgetsId = "20220919153157-1yxiize";
     }
   },
+  mounted() {
+    /*测试*/
+    this.nodeId = "20211101151402-3vuxzqe";
+    this.blockShow.refBox = "20220817160735-ciovjky";
+    this.refMerge.nodeNotebook = "20211027200047-w9c6tuu";
+    /*测试*/
+  },
   template: /*html*/ `
   <div>
     <label for="nodeId">初始块ID，即绘图开始节点</label>

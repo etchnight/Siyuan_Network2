@@ -94,9 +94,11 @@ export default {
         tag: "",
         ref: "",
       };
+      //name
       if (this.config.blockShow.isName) {
         label.name = block.name;
       }
+      //tag
       if (this.config.blockShow.isTag) {
         let tag = await this.siyuanService.sql_FindTagContentbyID(block.id);
         let tagGroup = this.config.blockShow.tagGroup;
@@ -112,6 +114,7 @@ export default {
         });
         label.tag = this.delDivide(label.tag);
       }
+      //ref
       if (
         (this.config.blockShow.isRefAfterDivide ||
           this.config.blockShow.isRefInBox) &&
@@ -125,6 +128,7 @@ export default {
         }
         label.ref = this.delDivide(label.ref);
       }
+      //content
       switch (block.type) {
         case "d":
         case "h":
@@ -187,7 +191,7 @@ export default {
         if (span == this.config.blockShow.refDivide + "((") {
           blockList.push("关系");
         }
-        if (block.box == refBox) {
+        else if (block.box == refBox) {
           blockList.push("关系");
         }
         blockList.push(block);
@@ -218,6 +222,13 @@ export default {
       var nextDataType;
       for (let i = 0; i < keywordList.length; i++) {
         var e = keywordList[i];
+        //前一个标记的类型
+        if (nextDataType) {
+          e.dataType = nextDataType;
+          resultList.push(e);
+          nextDataType = undefined;
+          continue;
+        }
         //标签
         if (e.type == "tag" && this.config.blockShow.isTag) {
           const tagGroup = this.config.blockShow.tagGroup;
@@ -264,13 +275,6 @@ export default {
         }
         //最后如果是标识，不处理
         if (e.type == "text" && !keywordList[i + 1]) {
-          continue;
-        }
-        //前一个标记的类型
-        if (nextDataType) {
-          e.dataType = nextDataType;
-          resultList.push(e);
-          nextDataType = "";
           continue;
         }
         //相当于默认值
