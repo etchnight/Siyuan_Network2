@@ -522,6 +522,15 @@ export class SiyuanConnect {
     );
     return response;
   };
+  //导出markdown文本
+  exportMdContent = async function (id) {
+    const response = await this.invoke("/api/export/exportMdContent", {
+      id: id,
+    });
+    let data = JSON.parse(response);
+    data = data.data;
+    return data.notebooks;
+  };
   //推送消息
   pushMsg = async function (msg, timeout) {
     const response = await this.invoke("/api/notification/pushMsg", {
@@ -534,56 +543,90 @@ export class SiyuanConnect {
   };
 
   //根据顺序返回关键词（引用和标签)列表，可以追加关键词列表(字符串列表)
+  /*返回字段包含:
+  block的全部字段
+  tag的type(tag)、content
+  文本：markdown、type: "text"/long/textIndex
+  markdown格式：不含格式的markdown，type: "markdown"
+  */
   keywordListInOrder = async function (block, otherList) {
     const id = block.id;
-    const tagList = await this.sql_FindTagbyID(id);
-    let refList = await this.sql_FindDefAnchorbyID(id);
-    let keywordList = [];
-    for (let e of refList) {
-      //将锚文本替换为原始内容（content）
-      let block = await this.sql_FindbyID(e.def_block_id);
-      block.markdown = e.markdown;
-      keywordList.push(block);
-    }
-    for (const e of otherList) {
-      if (e) {
-        keywordList.push({
-          markdown: e,
-          type: "text",
-        });
-      }
-    }
-    keywordList = keywordList.concat(tagList);
-    let markdown = block.markdown;
+    const file = await this.getFile("/data/" + block.box + block.path);
+    const dom = this.mapFile(file, id);
+    //const tagList = await this.sql_FindTagbyID(id);
+    //let refList = await this.sql_FindDefAnchorbyID(id);
     let resultList = [];
-    let preIndex = 0;
-    let preMaxIndex = 0;
-    while (markdown) {
-      let item = {};
-      let minIndex = markdown.length;
-      for (const e of keywordList) {
-        let index = markdown.indexOf(e.markdown);
-        if (index < minIndex && index >= 0) {
-          minIndex = index;
-          //拷贝而不能赋值
-          item={}
-          for (const key in e) {
-            item[key] = e[key];
+    for (const child of dom.Children) {
+      if (child.TextMarkType == "block-ref") {
+        const block = await this.sql_FindbyID(child.TextMarkBlockRefID);
+        resultList.push(block);
+        continue;
+      }
+      //另一种引用
+      if (child.Type == "NodeBlockRef") {
+        for (const e of child.Children) {
+          if (e.Type == "NodeBlockRefID") {
+            const block = await this.sql_FindbyID(e.Data);
+            resultList.push(block);
+          }
+        }
+        continue;
+      }
+      if (child.TextMarkType == "tag") {
+        resultList.push({
+          content: child.TextMarkTextContent,
+          type: "tag",
+        });
+        continue;
+      }
+      //处理其他类型
+      let text = "";
+      if (child.Type == "NodeText") {
+        text = child.Data;
+      } else {
+        text = child.TextMarkTextContent;
+      }
+      for (const divide of otherList) {
+        let textIndex = text.indexOf(divide);
+        if (textIndex != -1 && child.Type == "NodeText") {
+          resultList.push({
+            markdown: divide,
+            type: "text",
+            long: text.length,
+            textIndex: textIndex,
+          });
+          break;
+        }
+        //其他类型的反过来查找
+        if (divide[0] == divide[divide.length - 1]) {
+          //markdown格式的分隔符一定第一和最后一个字符是一样的
+          textIndex = divide.indexOf(text);
+          if (textIndex != -1 && child.Type != "NodeText") {
+            resultList.push({
+              markdown: divide,
+              type: "markdown",
+            });
+            break;
           }
         }
       }
-      if (!item.markdown) {
-        break;
-      }
-      //截取
-      preIndex = minIndex + item.markdown.length;
-      item.minIndex = minIndex + preMaxIndex;
-      item.maxIndex = preIndex + preMaxIndex;
-      preMaxIndex += preIndex;
-      markdown = markdown.slice(preIndex);
-      resultList.push(item);
     }
     return resultList;
+  };
+  mapFile = function (dom, id) {
+    let result;
+    if (dom.ID == id) {
+      return dom;
+    }
+    if (dom.Children) {
+      for (const child of dom.Children) {
+        result = this.mapFile(child, id);
+        if (result) {
+          break; //如果有返回值则终止
+        }
+      }
+    }
+    return result; //层层返回
   };
 }
 if (typeof module === "object") {

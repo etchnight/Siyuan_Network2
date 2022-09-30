@@ -120,7 +120,7 @@ export default {
           this.config.blockShow.isRefInBox) &&
         block.markdown
       ) {
-        const refList = await this.refListInOrder(block.markdown);
+        const refList = await this.keywordListInOrder(block);
         for (let i = 0; i < refList.length; i++) {
           if (refList[i] == "关系" && refList[i + 1]) {
             label.ref += refList[i + 1].content + "/";
@@ -150,58 +150,7 @@ export default {
       }
       return result;
     },
-    //从文本中提取引用id，siyuanserver中有类似方法
-    //但有改动，暂时不合并
-    async refListInOrder(markdown) {
-      var divideList = [];
-      var refBox = "";
-      if (this.config.blockShow.isRefInBox) {
-        refBox = this.config.blockShow.refBox;
-      }
-      if (this.config.blockShow.isRefAfterDivide) {
-        divideList.push(this.config.blockShow.refDivide);
-      }
-      for (const i in divideList) {
-        divideList[i] += "((";
-      }
-      divideList.push("((");
-      var blockList = [];
-      var preIndex = 0;
-      while (markdown) {
-        let minIndex = markdown.length;
-        let span = "";
-        for (const divide of divideList) {
-          let index = markdown.indexOf(divide);
-          if (index != -1 && minIndex > index) {
-            minIndex = index;
-            span = divide;
-          }
-        }
-        preIndex = minIndex + span.length; //不含((
-        markdown = markdown.slice(preIndex); //去掉((之前
-        if (!markdown) {
-          break;
-        }
-        //提取id
-        let index = markdown.indexOf("))");
-        let ref = markdown.slice(0, index);
-        let id = ref.slice(0, ref.indexOf(" "));
-        let block = await this.siyuanService.sql_FindbyID(id);
-        //标定类型
-        if (span == this.config.blockShow.refDivide + "((") {
-          blockList.push("关系");
-        }
-        else if (block.box == refBox) {
-          blockList.push("关系");
-        }
-        blockList.push(block);
-        //去掉))之前
-        preIndex = index + 2;
-        markdown = markdown.slice(preIndex);
-      }
-      return blockList;
-    },
-
+    //关键词列表
     async keywordListInOrder(block) {
       var divideList = [];
       if (this.config.blockShow.isRefAfterDivide) {
@@ -244,6 +193,7 @@ export default {
         if (
           e.type != "tag" &&
           e.type != "text" &&
+          e.type != "markdown" &&
           this.config.blockShow.isRefInBox
         ) {
           const refBox = this.config.blockShow.refBox;
@@ -254,13 +204,18 @@ export default {
           }
         }
         //文本及后面的关系
-        if (e.type == "text" && e.markdown && keywordList[i + 1]) {
+        if (
+          (e.type == "text" || e.type == "markdown") &&
+          e.markdown &&
+          keywordList[i + 1]
+        ) {
           if (
+            e.type == "text" &&
             //不是紧挨着
-            e.maxIndex != keywordList[i + 1].minIndex ||
-            //或者后一个不是块
-            keywordList[i + 1].type == "tag" ||
-            keywordList[i + 1].type == "text"
+            (e.textIndex != e.long - 1 ||
+              //或者后一个不是块
+              keywordList[i + 1].type == "tag" ||
+              keywordList[i + 1].type == "text")
           ) {
             continue;
           }
@@ -369,7 +324,10 @@ export default {
         return;
       }
       //忽略实体所在文件夹
-      if (block.box == this.config.refMerge.nodeNotebook && this.config.refMerge.active) {
+      if (
+        block.box == this.config.refMerge.nodeNotebook &&
+        this.config.refMerge.active
+      ) {
         return;
       }
       var parent = await this.siyuanService.sql_FindParentbyBlock(block);
@@ -397,7 +355,10 @@ export default {
         return;
       }
       //忽略实体所在文件夹
-      if (block.box == this.config.refMerge.nodeNotebook && this.config.refMerge.active) {
+      if (
+        block.box == this.config.refMerge.nodeNotebook &&
+        this.config.refMerge.active
+      ) {
         return;
       }
       var children = await this.siyuanService.sql_FindbyParentID(block.id);
@@ -463,89 +424,127 @@ export default {
       if (!block) {
         return;
       }
-      const keywordListInOrder = await this.keywordListInOrder(block);
-      let preNode;
-      let andList = [];
-      let stopNode; //暂存的上一组组配结果
-      let relaNode = await this.blockNode(block);
+      const keywordListInOrder2 = await this.keywordListInOrder(block);
+      //分割
+      let keywordList = [];
       let relaFlag = false;
-      for (let i = 0; i < keywordListInOrder.length; i++) {
-        const node = keywordListInOrder[i];
-        const blockNode = await this.blockNode(node);
+      let relaNode = await this.blockNode(block);
+      for (let i = 0; i < keywordListInOrder2.length; i++) {
+        const node = keywordListInOrder2[i];
         //因为无分隔符号导致未找到关系时，会默认将最后一个实体作为关系处理
         if (
-          i == keywordListInOrder.length - 1 &&
+          i == keywordListInOrder2.length - 1 &&
           relaFlag == false &&
           node.dataType != "关系"
         ) {
           node.dataType = "关系";
-          relaNode.label = blockNode.label;
         }
-        //普通实体
-        if (node.dataType == "实体") {
-          if (preNode) {
-            const mergeNode = this.visualNode(preNode, blockNode);
-            await this.toEchartsData([preNode, blockNode], [mergeNode]);
-            preNode = mergeNode;
-          } else {
-            preNode = blockNode;
-          }
-        }
-        //结束上一组-与stopNode组配
-        if (
-          (node.dataType == "实体-和" ||
-            node.dataType == "实体-暂停" ||
-            node.dataType == "关系") &&
-          stopNode &&
-          preNode
-        ) {
-          const mergeNode = this.visualNode(stopNode, preNode);
-          await this.toEchartsData([stopNode, preNode], [mergeNode]);
-          preNode = mergeNode;
-        }
-        //开始下一组
-        if (node.dataType == "实体-和") {
-          if (preNode) {
-            andList.push(preNode);
-          }
-          preNode = blockNode;
-        }
-        if (node.dataType == "实体-暂停") {
-          if (preNode) {
-            stopNode = preNode;
-          }
-          preNode = blockNode;
-        }
-        //关系
         if (node.dataType == "关系") {
           relaFlag = true;
-          if (preNode) {
-            andList.push(preNode); //这样及时andList为空也可以运行
+          const blockNode = await this.blockNode(node);
+          relaNode.label = blockNode.label;
+          keywordList.push(keywordListInOrder2.slice(0, i));
+          if (i < keywordListInOrder2.length - 1) {
+            keywordList.push(keywordListInOrder2.slice(i + 1));
           }
-          preNode = null;
-          let label = "";
-          for (const a of andList) {
-            label += a.label + "/";
-          }
-          if (relaNode.label) {
-            relaNode.label = label + relaNode.label;
-          } else {
-            relaNode.label = this.delDivide(label);
-          }
-          await this.toEchartsData(andList, [relaNode]);
-          andList = [];
+          break;
         }
       }
-      //最后一次链接
-      if (preNode) {
-        andList.push(preNode);
+      //暂停组配符分割
+      for (let i = 0; i < keywordList.length; i++) {
+        const relaList = keywordList[i];
+        let stopList = [];
+        let lastj = 0;
+        for (let j = 0; j < relaList.length; j++) {
+          const node = relaList[j];
+          if (node.dataType == "实体-暂停") {
+            stopList.push(relaList.slice(lastj, j));
+            lastj = j;
+          }
+          if (j == relaList.length - 1) {
+            stopList.push(relaList.slice(lastj));
+          }
+        }
+        keywordList[i] = stopList;
       }
-      if (andList.length > 0) {
-        await this.toEchartsData([relaNode], andList);
+      //和组配符分割
+      for (let i = 0; i < keywordList.length; i++) {
+        const relaList = keywordList[i];
+        for (let k = 0; k < relaList.length; k++) {
+          const stopList = relaList[k];
+          let andList = [];
+          let lastj = 0;
+          for (let j = 0; j < stopList.length; j++) {
+            const node = stopList[j];
+            if (node.dataType == "实体-和") {
+              andList.push(stopList.slice(lastj, j));
+              lastj = j;
+            }
+            if (j == stopList.length - 1) {
+              andList.push(stopList.slice(lastj));
+            }
+          }
+          keywordList[i][k] = andList;
+        }
       }
+      //组配
+      let startAndEnd = []; //合并后的relaList
+      for (let i = 0; i < keywordList.length; i++) {
+        const relaList = keywordList[i];
+        let preList = [];
+        for (const stopList of relaList) {
+          //stopList下各组是并列的
+          let currentList = [];
+          for (const andList of stopList) {
+            //andList中全是实体，需要组配
+            let preNode;
+            for (const node of andList) {
+              const blockNode = await this.blockNode(node);
+              if (preNode) {
+                const mergeNode = this.visualNode(preNode, blockNode);
+                await this.toEchartsData([preNode, blockNode], [mergeNode]);
+                preNode = mergeNode;
+              } else {
+                preNode = blockNode;
+              }
+            }
+            currentList.push(preNode);
+          }
+          if (preList.length == 0) {
+            preList = currentList;
+          } else {
+            let tempList = [];
+            for (const preNode of preList) {
+              for (const blockNode of currentList) {
+                const mergeNode = this.visualNode(preNode, blockNode);
+                await this.toEchartsData([preNode, blockNode], [mergeNode]);
+                tempList.push(mergeNode);
+              }
+            }
+            preList = tempList;
+          }
+        }
+        startAndEnd.push(preList);
+      }
+      //格式化关系标签
+      let label = ["", ""];
+      for (let m = 0; m < startAndEnd.length; m++) {
+        const startOrEnd = startAndEnd[m];
+        for (let i = 0; i < startOrEnd.length; i++) {
+          const a = startOrEnd[i];
+          if (i < startOrEnd.length - 1) {
+            label[m] += a.label + ",";
+          } else {
+            label[m] += a.label;
+          }
+        }
+      }
+      relaNode.label = label[0] + "->" + relaNode.label + "->" + label[1];
+      //与关系组配
+      await this.toEchartsData(startAndEnd[0], [relaNode]);
+      await this.toEchartsData([relaNode], startAndEnd[1]);
       return;
     },
-
     //虚拟节点
     visualNode(blockNode1, blockNode2) {
       var result = {

@@ -96,7 +96,7 @@ export default {
   },
   mounted() {
     /*测试*/
-    this.nodeId = "20211101151402-3vuxzqe";
+    this.nodeId = "20220922202952-467cm4x";
     this.blockShow.refBox = "20220817160735-ciovjky";
     this.refMerge.nodeNotebook = "20211027200047-w9c6tuu";
     /*测试*/
