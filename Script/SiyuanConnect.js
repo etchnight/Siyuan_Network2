@@ -556,6 +556,17 @@ export class SiyuanConnect {
     //const tagList = await this.sql_FindTagbyID(id);
     //let refList = await this.sql_FindDefAnchorbyID(id);
     let resultList = [];
+    //不对文档块做任何处理,直接按文字节点返回
+    if (dom.Type == "NodeDocument") {
+      let title = dom.Properties.title;
+      resultList.push({
+        markdown: title,
+        type: "text",
+        long: title.length,
+        textIndex: 0,
+      });
+      return resultList;
+    }
     for (const child of dom.Children) {
       if (child.TextMarkType == "block-ref") {
         const block = await this.sql_FindbyID(child.TextMarkBlockRefID);
@@ -579,7 +590,7 @@ export class SiyuanConnect {
         });
         continue;
       }
-      //处理其他类型
+      //处理其他类型(处理文字节点，查找分割符号)
       let text = "";
       if (child.Type == "NodeText") {
         text = child.Data;
