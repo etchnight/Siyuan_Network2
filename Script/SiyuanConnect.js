@@ -639,6 +639,32 @@ export class SiyuanConnect {
     }
     return result; //层层返回
   };
+  //模拟生成blockId
+  blockId = function () {
+    const temp_url = URL.createObjectURL(new Blob());
+    let filename = temp_url.toString();
+    URL.revokeObjectURL(temp_url); //释放对象
+    filename = filename.replace(/.*?\//, "");
+    filename = filename.replace(/-/g, "");
+    filename = filename.slice(-8, -1);
+    //生成类似于时间戳的序号
+    var t = new Date();
+    var tiemStr =
+      t.getFullYear() +
+      addZero(t.getMonth()) +
+      addZero(t.getDay()) +
+      addZero(t.getHours()) +
+      addZero(t.getMinutes())+
+      addZero(t.getSeconds());
+    return tiemStr+'-'+filename;
+    function addZero(num) {
+      if (num < 10) {
+        return num;
+      } else {
+        return "0" + num;
+      }
+    }
+  };
 }
 if (typeof module === "object") {
   module.exports = SiyuanConnect;

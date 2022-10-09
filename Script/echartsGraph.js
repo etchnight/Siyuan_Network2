@@ -332,10 +332,9 @@ export default {
       }
       var parent = await this.siyuanService.sql_FindParentbyBlock(block);
       if (parent) {
-        await this.toEchartsData(
-          [await this.blockNode(parent)],
-          [await this.blockNode(block)]
-        );
+        let relaNode = this.visulaNodeByText("子级");
+        await this.toEchartsData([await this.blockNode(parent)], [relaNode]);
+        await this.toEchartsData([relaNode], [await this.blockNode(block)]);
       }
       return;
     },
@@ -369,7 +368,10 @@ export default {
             childrenNodes.push(await this.blockNode(c));
           }
         }
-        await this.toEchartsData([await this.blockNode(block)], childrenNodes);
+        let relaNode = this.visulaNodeByText("子级");
+        await this.toEchartsData([await this.blockNode(block)], [relaNode]);
+        await this.toEchartsData([relaNode], childrenNodes);
+        //await this.toEchartsData([await this.blockNode(block)], childrenNodes);
       }
       return;
     },
@@ -554,12 +556,24 @@ export default {
         box: "虚拟节点",
         doc: "虚拟节点",
         type: "虚拟节点",
-        dataType: "虚拟节点",
+        dataType: "visualNode",
         layerNum: this.layerNum,
       };
       return result;
     },
-
+    //由文本创建的虚拟节点，在特殊情况下使用（父子节点）
+    visulaNodeByText(text) {
+      return {
+        name: this.siyuanService.blockId(),
+        label: text,
+        content: "虚拟节点无内容",
+        box: "虚拟节点",
+        doc: "虚拟节点",
+        type: "虚拟节点",
+        dataType: "visulaNodeByText",
+        layerNum: this.layerNum,
+      };
+    },
     //删除最后一个“/”
     delDivide(str) {
       if (!str) {
@@ -692,6 +706,18 @@ export default {
                 label = data.data.label;
               } else {
                 label = data.data.content.slice(0, 5) + "...";
+              }
+              return label;
+            },
+          },
+          edgeLabel: {
+            show: true,
+            formatter: (data) => {
+              let label;
+              if (data.data.label) {
+                label = data.data.label;
+              } else {
+                label = "";
               }
               return label;
             },
