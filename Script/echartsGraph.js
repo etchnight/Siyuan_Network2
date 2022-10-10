@@ -240,7 +240,7 @@ export default {
     },
     //接收两个block列表,将它们转化为list1 to list2的形式
     //并添加到节点和边
-    async toEchartsData(list1 = [], list2 = []) {
+    async toEchartsData(list1 = [], list2 = [], linkType) {
       //添加节点
       for (let i = 0; i < list1.length + list2.length; i++) {
         let block;
@@ -261,10 +261,39 @@ export default {
         for (let j = 0; j < list2.length; j++) {
           let block2 = list2[j];
           if (block1.name && block2.name) {
+            let value = 50;
+            if (block1.box == block2.box && block1.box != "虚拟节点") {
+              //同文件夹吸引
+              value = value + 10;
+            }
+            if (block1.doc == block2.doc && block1.doc != "虚拟节点") {
+              //同文档吸引
+              value = value + 10;
+            }
+            if (block1.type == "h" || block2.type == "h") {
+              //标题吸引其他节点
+              value = value + 10;
+            }
+            if (
+              (block1.type == "visualNode" && block2.type != "visualNode") ||
+              (block1.type != "visualNode" && block2.type == "visualNode")
+            ) {
+              //虚拟节点排斥其他节点,注意，虚拟块之间并不互相排斥
+              value = value - 20;
+            }
+            if (
+              block1.type == "visulaNodeByText" ||
+              block2.type == "visulaNodeByText"
+            ) {
+              //虚拟文字节点吸引其他节点
+              value = value + 20;
+            }
             this.AddEdges({
               source: block1.name,
               target: block2.name,
               layerNum: this.layerNum,
+              value: value,
+              label: linkType,
             });
           }
         }
@@ -300,12 +329,12 @@ export default {
       }
       for (let d of newdata) {
         if (
+          //防止自引用
           !_.some(this.edges, (o) => {
             return o.source == d.source && o.target == d.target;
           }) &&
           d.source != d.target
         ) {
-          //防止自引用
           this.edges.push(d);
         }
       }
@@ -332,9 +361,13 @@ export default {
       }
       var parent = await this.siyuanService.sql_FindParentbyBlock(block);
       if (parent) {
-        let relaNode = this.visulaNodeByText("子级");
-        await this.toEchartsData([await this.blockNode(parent)], [relaNode]);
-        await this.toEchartsData([relaNode], [await this.blockNode(block)]);
+        //let relaNode = this.visulaNodeByText("子级");
+        //await this.toEchartsData([await this.blockNode(parent)], [relaNode]);
+        //await this.toEchartsData([relaNode], [await this.blockNode(block)]);
+        await this.toEchartsData(
+          [await this.blockNode(parent)],
+          [await this.blockNode(block)], "子级"
+        );
       }
       return;
     },
@@ -368,10 +401,22 @@ export default {
             childrenNodes.push(await this.blockNode(c));
           }
         }
-        let relaNode = this.visulaNodeByText("子级");
-        await this.toEchartsData([await this.blockNode(block)], [relaNode]);
-        await this.toEchartsData([relaNode], childrenNodes);
-        //await this.toEchartsData([await this.blockNode(block)], childrenNodes);
+        //let relaNode = this.visulaNodeByText("子级");
+        //await this.toEchartsData([await this.blockNode(block)], [relaNode]);
+        //await this.toEchartsData([relaNode], childrenNodes);
+        await this.toEchartsData(
+          [await this.blockNode(block)],
+          childrenNodes,
+          "子级"
+        );
+        //子节点自动展开
+        for (const c of children) {
+          if (this.config.refMerge.active) {
+            await this.dataVisual(c);
+          } else {
+            await this.dataRef(c);
+          }
+        }
       }
       return;
     },
@@ -396,7 +441,11 @@ export default {
           }
           i++;
         }
-        await this.toEchartsData([await this.blockNode(block)], resultList);
+        await this.toEchartsData(
+          [await this.blockNode(block)],
+          resultList,
+          "引用"
+        );
         return;
       }
     },
@@ -504,7 +553,11 @@ export default {
               const blockNode = await this.blockNode(node);
               if (preNode) {
                 const mergeNode = this.visualNode(preNode, blockNode);
-                await this.toEchartsData([preNode, blockNode], [mergeNode]);
+                await this.toEchartsData(
+                  [preNode, blockNode],
+                  [mergeNode],
+                  "组配"
+                );
                 preNode = mergeNode;
               } else {
                 preNode = blockNode;
@@ -519,7 +572,11 @@ export default {
             for (const preNode of preList) {
               for (const blockNode of currentList) {
                 const mergeNode = this.visualNode(preNode, blockNode);
-                await this.toEchartsData([preNode, blockNode], [mergeNode]);
+                await this.toEchartsData(
+                  [preNode, blockNode],
+                  [mergeNode],
+                  "组配"
+                );
                 tempList.push(mergeNode);
               }
             }
@@ -541,10 +598,12 @@ export default {
           }
         }
       }
-      relaNode.label = label[0] + "->" + relaNode.label + "->" + label[1];
+      if (relaNode.label && relaNode.type != "d" && relaNode.type != "h") {
+        relaNode.label = label[0] + "->" + relaNode.label + "->" + label[1];
+      }
       //与关系组配
-      await this.toEchartsData(startAndEnd[0], [relaNode]);
-      await this.toEchartsData([relaNode], startAndEnd[1]);
+      await this.toEchartsData(startAndEnd[0], [relaNode], "反向引用");
+      await this.toEchartsData([relaNode], startAndEnd[1], "引用");
       return;
     },
     //虚拟节点
@@ -555,8 +614,7 @@ export default {
         content: "虚拟节点无内容",
         box: "虚拟节点",
         doc: "虚拟节点",
-        type: "虚拟节点",
-        dataType: "visualNode",
+        type: "visualNode",
         layerNum: this.layerNum,
       };
       return result;
@@ -569,8 +627,7 @@ export default {
         content: "虚拟节点无内容",
         box: "虚拟节点",
         doc: "虚拟节点",
-        type: "虚拟节点",
-        dataType: "visulaNodeByText",
+        type: "visulaNodeByText",
         layerNum: this.layerNum,
       };
     },
@@ -698,6 +755,9 @@ export default {
           type: "graph",
           layout: "force",
           zoom: 2,
+          force: {
+            edgeLength: [10, 50],
+          },
           label: {
             show: true,
             formatter: (data) => {
@@ -714,6 +774,7 @@ export default {
             show: true,
             formatter: (data) => {
               let label;
+              //console.log(data.data.label)
               if (data.data.label) {
                 label = data.data.label;
               } else {
@@ -721,6 +782,7 @@ export default {
               }
               return label;
             },
+            color: '#c1d1cf',
           },
           roam: true,
           draggable: true,
