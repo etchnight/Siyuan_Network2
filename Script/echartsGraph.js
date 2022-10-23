@@ -77,7 +77,10 @@ export default {
       //console.log(this.myChart.getOption());
     },
     //block节点
-    async blockNode(block) {
+    async blockNode(block, category) {
+      if (block.markdown == "未找到的节点") {
+        category = "错误";
+      }
       var result = {
         name: block.id,
         label: "",
@@ -86,7 +89,7 @@ export default {
         doc: block.root_id,
         type: block.type,
         layerNum: this.layerNum,
-        category: 0,
+        category: category || "实体",
       };
       var label = {
         name: "",
@@ -179,23 +182,22 @@ export default {
           continue;
         }
         //标签
-        if (e.type == "tag" && this.config.blockShow.isTag) {
-          const tagGroup = this.config.blockShow.tagGroup;
-          if (tagGroup && e.content.indexOf(tagGroup + "/") != 0) {
-            continue;
+        if (e.keywordType == "tag") {
+          if (this.config.blockShow.isTag) {
+            const tagGroup = this.config.blockShow.tagGroup;
+            if (tagGroup && e.content.indexOf(tagGroup + "/") != 0) {
+              continue;
+            } else {
+              e.dataType = "关系";
+              resultList.push(e);
+              continue;
+            }
           } else {
-            e.dataType = "关系";
-            resultList.push(e);
             continue;
           }
         }
         //专用笔记本内引用
-        if (
-          e.type != "tag" &&
-          e.type != "text" &&
-          e.type != "markdown" &&
-          this.config.blockShow.isRefInBox
-        ) {
+        if (e.keywordType == "block" && this.config.blockShow.isRefInBox) {
           const refBox = this.config.blockShow.refBox;
           if (e.box == refBox) {
             e.dataType = "关系";
@@ -204,33 +206,31 @@ export default {
           }
         }
         //文本及后面的关系
-        if (
-          (e.type == "text" || e.type == "markdown") &&
-          e.markdown &&
-          keywordList[i + 1]
-        ) {
+        if (e.keywordType == "text") {
+          //最后如果是标识，不处理
+          if (!keywordList[i + 1]) {
+            continue;
+          }
           if (
-            e.type == "text" &&
             //不是紧挨着
-            (e.textIndex != e.long - 1 ||
-              //或者后一个不是块
-              keywordList[i + 1].type == "tag" ||
-              keywordList[i + 1].type == "text")
+            e.textIndex + e.long != keywordList[i + 1].textIndex ||
+            //或者后一个不是块
+            keywordList[i + 1].keywordType != "block"
           ) {
             continue;
           }
-          if (e.markdown == this.config.blockShow.refDivide) {
-            nextDataType = "关系";
-          } else if (e.markdown == this.config.refMerge.stopSymbol) {
-            nextDataType = "实体-暂停";
-          } else if (this.config.refMerge.andSymbol.indexOf(e.markdown) != -1) {
-            nextDataType = "实体-和";
+          if (e.keywordType == "text" && keywordList[i + 1]) {
+            if (e.markdown == this.config.blockShow.refDivide) {
+              nextDataType = "关系";
+            } else if (e.markdown == this.config.refMerge.stopSymbol) {
+              nextDataType = "实体-暂停";
+            } else if (
+              this.config.refMerge.andSymbol.indexOf(e.markdown) != -1
+            ) {
+              nextDataType = "实体-和";
+            }
+            continue;
           }
-          continue;
-        }
-        //最后如果是标识，不处理
-        if (e.type == "text" && !keywordList[i + 1]) {
-          continue;
         }
         //相当于默认值
         e.dataType = "实体";
@@ -366,7 +366,8 @@ export default {
         //await this.toEchartsData([relaNode], [await this.blockNode(block)]);
         await this.toEchartsData(
           [await this.blockNode(parent)],
-          [await this.blockNode(block)], "子级"
+          [await this.blockNode(block)],
+          "子级"
         );
       }
       return;
@@ -475,11 +476,11 @@ export default {
       if (!block) {
         return;
       }
+      let relaNode = await this.blockNode(block, "关系");
       const keywordListInOrder2 = await this.keywordListInOrder(block);
       //分割
       let keywordList = [];
       let relaFlag = false;
-      let relaNode = await this.blockNode(block);
       for (let i = 0; i < keywordListInOrder2.length; i++) {
         const node = keywordListInOrder2[i];
         //因为无分隔符号导致未找到关系时，会默认将最后一个实体作为关系处理
@@ -599,7 +600,12 @@ export default {
         }
       }
       if (relaNode.label && relaNode.type != "d" && relaNode.type != "h") {
-        relaNode.label = label[0] + "->" + relaNode.label + "->" + label[1];
+        if (label[0]) {
+          relaNode.label = label[0] + "->" + relaNode.label;
+        }
+        if (label[1]) {
+          relaNode.label = relaNode.label + "->" + label[1];
+        }
       }
       //与关系组配
       await this.toEchartsData(startAndEnd[0], [relaNode], "反向引用");
@@ -616,10 +622,11 @@ export default {
         doc: "虚拟节点",
         type: "visualNode",
         layerNum: this.layerNum,
+        category: "虚拟",
       };
       return result;
     },
-    //由文本创建的虚拟节点，在特殊情况下使用（父子节点）
+    //由文本创建的虚拟节点，在特殊情况下使用（父子节点,错误节点）
     visulaNodeByText(text) {
       return {
         name: this.siyuanService.blockId(),
@@ -749,6 +756,8 @@ export default {
           },
         },
       },
+      color: ["#5470c6", "#686868", "#ee6666", "#91cc75"],
+      //蓝灰红绿
       series: [
         {
           id: "graphMain",
@@ -760,6 +769,10 @@ export default {
           },
           label: {
             show: true,
+            color: "#fff",
+            textBorderType: "solid",
+            textBorderColor: "inherit",
+            textBorderWidth: 2,
             formatter: (data) => {
               let label;
               if (data.data.label) {
@@ -782,7 +795,7 @@ export default {
               }
               return label;
             },
-            color: '#c1d1cf',
+            color: "#c1d1cf",
           },
           roam: true,
           draggable: true,
@@ -801,14 +814,20 @@ export default {
             textStyle: {},
             extraCssText: "",
           },
-          /*categories: [
+          categories: [
             {
-              name: "一般节点",
-              itemStyle: {
-                color: "#daddd5",
-              },
+              name: "实体",
             },
-          ],*/
+            {
+              name: "虚拟",
+            },
+            {
+              name: "错误",
+            },
+            {
+              name: "关系",
+            },
+          ],
         },
       ],
     };
