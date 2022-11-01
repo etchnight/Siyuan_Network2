@@ -261,6 +261,7 @@ export default {
         for (let j = 0; j < list2.length; j++) {
           let block2 = list2[j];
           if (block1.name && block2.name) {
+            /*
             let value = 50;
             if (block1.box == block2.box && block1.box != "虚拟节点") {
               //同文件夹吸引
@@ -287,12 +288,12 @@ export default {
             ) {
               //虚拟文字节点吸引其他节点
               value = value + 20;
-            }
+            }*/
             this.AddEdges({
               source: block1.name,
               target: block2.name,
               layerNum: this.layerNum,
-              value: value,
+              //value: value,
               label: linkType,
             });
           }
@@ -850,7 +851,7 @@ export default {
       //this.findAndAdd(id);
     });*/
     //右键菜单
-    myChart.on("contextmenu", function (params) {
+    myChart.on("click", function (params) {
       //关默认
       params.event.event.preventDefault();
       //显示菜单
