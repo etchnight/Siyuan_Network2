@@ -165,6 +165,9 @@ export default {
         if (this.config.refMerge.stopSymbol) {
           divideList.push(this.config.refMerge.stopSymbol);
         }
+        if (this.config.refMerge.isolateSymbol) {
+          divideList.push(this.config.refMerge.isolateSymbol);
+        }
       }
       var keywordList = await this.siyuanService.keywordListInOrder(
         block,
@@ -224,8 +227,11 @@ export default {
               nextDataType = "关系";
             } else if (e.markdown == this.config.refMerge.stopSymbol) {
               nextDataType = "实体-暂停";
+            } else if (e.markdown == this.config.refMerge.isolateSymbol) {
+              nextDataType = "孤立";
             } else if (
               this.config.refMerge.andSymbol.indexOf(e.markdown) != -1
+              && i>0//第一个不能为“实体-和”
             ) {
               nextDataType = "实体-和";
             }
@@ -478,7 +484,21 @@ export default {
         return;
       }
       let relaNode = await this.blockNode(block, "关系");
-      const keywordListInOrder2 = await this.keywordListInOrder(block);
+      let keywordListInOrder2 = await this.keywordListInOrder(block);
+      //孤立组配剔除
+      let tempList = [];
+      for (const node of keywordListInOrder2) {
+        if (node.dataType == "孤立") {
+          await this.toEchartsData(
+            [relaNode],
+            [await this.blockNode(node)],
+            "一般引用"
+          );
+        } else {
+          tempList.push(node);
+        }
+      }
+      keywordListInOrder2 = tempList;
       //分割
       let keywordList = [];
       let relaFlag = false;
@@ -492,6 +512,7 @@ export default {
         ) {
           node.dataType = "关系";
         }
+        //通过关系分割为3块（rela以及rela前后）
         if (node.dataType == "关系") {
           relaFlag = true;
           const blockNode = await this.blockNode(node);

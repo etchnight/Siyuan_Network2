@@ -35,6 +35,7 @@ export default {
         otherIsNode: false,
         andSymbol: [",", "，", "和", "与", "、"],
         stopSymbol: "`$`",
+        isolateSymbol:"`%`",
         nodeNotebook: "",
       },
     };
@@ -304,6 +305,16 @@ export default {
             id="andSymbol"
             type="text"
             v-model="refMerge.andSymbol"
+            readonly
+          />
+        </label>
+        <label for="andSymbol">
+          孤立组配符（不参与组配）
+          <input
+            autocomplete="off"
+            id="isolateSymbol"
+            type="text"
+            v-model="refMerge.isolateSymbol"
             readonly
           />
         </label>
